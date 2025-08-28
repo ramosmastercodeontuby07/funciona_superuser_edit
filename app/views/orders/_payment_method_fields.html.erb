@@ -1,0 +1,14 @@
+<!-- app/views/orders/_payment_method_fields.html.erb -->
+<div class="field">
+  <label class="block mb-1 text-sm text-gray-600">Método de pago</label>
+  <div class="space-x-4">
+    <label>
+      <%= radio_button_tag "order[payment_method]", "efectivo", true %>
+      Efectivo
+    </label>
+    <label>
+      <%= radio_button_tag "order[payment_method]", "transferencia", false %>
+      Transferencia
+    </label>
+  </div>
+</div>

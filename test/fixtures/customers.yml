@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  enrollment_date: 2025-07-23
+  plan: MyString
+
+two:
+  name: MyString
+  enrollment_date: 2025-07-23
+  plan: MyString

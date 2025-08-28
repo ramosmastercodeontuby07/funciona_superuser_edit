@@ -1,0 +1,14 @@
+<h1>Código Secreto</h1>
+<p>Formato: DDyhga902131HHMM (ej. <%= Time.zone.today.day %>yhga902131<%= Time.zone.now.strftime('%H%M') %>)</p>
+<%= form_with url: verify_path, local: true do |f| %>
+  <div>
+    <%= f.label :secret_code, 'Código Secreto' %>
+    <%= f.text_field :secret_code %>
+  </div>
+  <div>
+    <%= f.submit 'Verificar' %>
+  </div>
+<% end %>
+<% if flash[:alert] %>
+  <p class="error"><%= flash[:alert] %></p>
+<% end %>

@@ -1,0 +1,275 @@
+<!-- app/views/class_types/index.html.erb -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <%= csrf_meta_tags %>
+  <title>Clases</title>
+  <%= stylesheet_link_tag 'application', media: 'all' %>
+  <%= javascript_include_tag 'application', defer: true %>
+</head>
+<body class="classes-page" style="min-height:100vh; background:#0a0a0a; color:#e6e6e6;">
+  <div class="classes-container" style="min-height:100vh; display:flex; flex-direction:column;">
+
+    <!-- Header / Resumen del día -->
+    <header style="padding:16px 20px; border-bottom:1px solid rgba(255,255,255,.08); background:#111111;">
+      <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+        <h1 style="margin:0; font-size:1.6rem; font-weight:800; color:#ffffff;">Clases</h1>
+        <div style="margin-left:auto; display:flex; gap:14px; flex-wrap:wrap; align-items:center; font-size:.95rem;">
+          <div><strong>Personas (clases) vendidas hoy:</strong> <%= @today_classes_total_items %></div>
+          <div><strong>Total hoy:</strong> $<%= sprintf('%.2f', @today_classes_total_amount) %></div>
+          <%= link_to '← Volver al Panel', ecommerce_path, class: 'form-button small-btn', style: 'background:#ffffff; color:#111111; border:1px solid #000; border-radius:10px; padding:8px 12px; text-decoration:none;' %>
+        </div>
+      </div>
+    </header>
+
+    <!-- Grid de botones (ocupan pantalla) -->
+    <main style="flex:1; display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; padding:16px;">
+      <% @classes_catalog.each do |klass| %>
+        <button
+          class="class-button"
+          data-key="<%= klass[:key] %>"
+          data-name="<%= klass[:name] %>"
+          data-price="<%= klass[:price] %>"
+          style="
+            display:flex; flex-direction:column; justify-content:center; align-items:center;
+            border:2px solid #000; border-radius:16px; padding:20px; cursor:pointer;
+            transition:transform .08s ease, box-shadow .2s ease;
+            min-height: 38vh; font-size:1.2rem;
+
+            /* — Fondo con imagen (misma para los 3) — */
+            background-image:
+              linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45)),
+              url('<%= asset_path 'class_button_bg.jpg' %>');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+
+            /* Texto legible sobre la imagen */
+            color:#ffffff; text-shadow: 0 1px 2px rgba(0,0,0,.8);
+          "
+        >
+          <span style="font-size:2rem; font-weight:800; margin-bottom:8px;"><%= klass[:name] %></span>
+          <span style="font-size:1.25rem; color:#f3f4f6;">$<%= sprintf('%.2f', klass[:price]) %></span>
+          <span class="class-qty" style="margin-top:10px; font-size:1rem; color:#e5e7eb;">Seleccionadas: 0</span>
+        </button>
+      <% end %>
+    </main>
+
+    <!-- Box de carrito/resumen -->
+    <section style="border-top:1px solid rgba(255,255,255,.08); background:#111111;">
+      <div style="max-width:1200px; margin:0 auto; padding:12px 16px; display:flex; align-items:flex-start; gap:16px; flex-wrap:wrap;">
+        <!-- Resumen items -->
+        <div style="flex:1; min-width:280px;">
+          <strong style="color:#ffffff;">Resumen:</strong>
+          <span id="summary-line" style="color:#d1d5db; margin-left:8px;">(sin clases)</span>
+        </div>
+
+        <!-- Controles de precio personalizado -->
+        <div style="display:flex; flex-direction:column; gap:8px; min-width:280px;">
+          <button id="custom-toggle" class="form-button small-btn"
+                  style="background:#e11d48; color:#ffffff; border:1px solid #000; border-radius:10px; padding:8px 12px; cursor:pointer;">
+            Precio personalizado
+          </button>
+
+          <div id="custom-panel" style="display:none; gap:8px; align-items:flex-start;">
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <label for="custom-price" style="font-size:.9rem; color:#d1d5db;">Monto personalizado</label>
+              <input id="custom-price" type="number" min="0" step="0.01" placeholder="0.00"
+                     style="border:1px solid #000; border-radius:10px; padding:8px 10px; width:160px; background:#ffffff; color:#111111;" />
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px; flex:1; min-width:240px;">
+              <label for="custom-note" style="font-size:.9rem; color:#d1d5db;">Nota (opcional)</label>
+              <textarea id="custom-note" rows="2" placeholder="Escribe una nota..."
+                        style="border:1px solid #000; border-radius:10px; padding:8px 10px; width:100%; background:#ffffff; color:#111111;"></textarea>
+            </div>
+            <button id="custom-clear" class="form-button small-btn"
+                    style="background:#ffffff; color:#111111; border:1px solid #000; border-radius:10px; padding:8px 12px; cursor:pointer;">
+              Quitar personalizado
+            </button>
+          </div>
+        </div>
+
+        <!-- Totales y acciones -->
+        <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap; margin-left:auto;">
+          <div style="color:#ffffff;"><strong>Subtotal:</strong> $<span id="subtotal">0.00</span></div>
+          <div style="display:flex; gap:8px;">
+            <button id="clear-btn" class="form-button small-btn"
+                    style="background:#ffffff; color:#111111; border:1px solid #000; border-radius:10px; padding:8px 12px;">
+              Limpiar
+            </button>
+            <button id="checkout-btn" class="form-button small-btn" disabled
+                    style="background:#16a34a; color:#ffffff; border:1px solid #000; border-radius:10px; padding:8px 12px;">
+              Realizar Venta
+            </button>
+          </div>
+          <div id="checkout-msg" style="min-width:220px; color:#86efac;"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const csrfToken   = document.querySelector("meta[name='csrf-token']").content;
+      const checkoutUrl = "<%= class_checkout_path %>";
+
+      // Estado del carrito de clases
+      const cart = {}; // key -> { name, price, qty }
+
+      // Precio personalizado
+      let customPrice = null; // number | null
+      let customNote  = "";
+
+      const subtotalEl   = document.getElementById('subtotal');
+      const summaryEl    = document.getElementById('summary-line');
+      const checkoutBtn  = document.getElementById('checkout-btn');
+      const clearBtn     = document.getElementById('clear-btn');
+      const checkoutMsg  = document.getElementById('checkout-msg');
+
+      const customToggle = document.getElementById('custom-toggle');
+      const customPanel  = document.getElementById('custom-panel');
+      const customInput  = document.getElementById('custom-price');
+      const customNoteEl = document.getElementById('custom-note');
+      const customClear  = document.getElementById('custom-clear');
+
+      // Click en botones de clase (suman cantidad)
+      document.querySelectorAll('.class-button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const key   = btn.dataset.key;
+          const name  = btn.dataset.name;
+          const price = parseFloat(btn.dataset.price);
+
+          if (!cart[key]) cart[key] = { name, price, qty: 0 };
+          cart[key].qty += 1;
+
+          // Refrescar UI de ese botón
+          const qtyEl = btn.querySelector('.class-qty');
+          qtyEl.textContent = `Seleccionadas: ${cart[key].qty}`;
+
+          renderSummary();
+        });
+      });
+
+      // Limpiar
+      clearBtn.addEventListener('click', () => {
+        Object.keys(cart).forEach(k => delete cart[k]);
+        document.querySelectorAll('.class-qty').forEach(el => el.textContent = 'Seleccionadas: 0');
+        customPrice = null;
+        customNote  = "";
+        customInput.value = '';
+        customNoteEl.value = '';
+        renderSummary();
+        checkoutMsg.textContent = '';
+      });
+
+      // Toggle panel personalizado
+      customToggle.addEventListener('click', () => {
+        const isHidden = customPanel.style.display === 'none' || customPanel.style.display === '';
+        customPanel.style.display = isHidden ? 'flex' : 'none';
+        if (isHidden) customInput.focus();
+      });
+
+      // Cambios en precio/nota personalizada
+      customInput.addEventListener('input', () => {
+        const v = parseFloat(customInput.value);
+        customPrice = isFinite(v) && v > 0 ? v : null;
+        renderSummary();
+      });
+      customNoteEl.addEventListener('input', () => {
+        customNote = customNoteEl.value || "";
+      });
+
+      // Quitar personalizado
+      customClear.addEventListener('click', () => {
+        customPrice = null;
+        customNote  = "";
+        customInput.value = '';
+        customNoteEl.value = '';
+        renderSummary();
+      });
+
+      // Checkout
+      checkoutBtn.addEventListener('click', async () => {
+        checkoutBtn.disabled = true;
+        checkoutBtn.textContent = 'Procesando...';
+        checkoutMsg.textContent = '';
+
+        try {
+          let payload;
+          if (customPrice && customPrice > 0) {
+            payload = { custom_total: customPrice, note: customNote };
+          } else {
+            const items = Object.entries(cart)
+              .filter(([, it]) => it.qty > 0)
+              .map(([key, it]) => ({ key, qty: it.qty }));
+            if (!items.length) {
+              throw new Error('No hay clases seleccionadas');
+            }
+            payload = { items, note: customNote };
+          }
+
+          const res  = await fetch(checkoutUrl, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+              'X-CSRF-Token': csrfToken,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+          const json = await res.json();
+          if (!res.ok || !json.success) throw new Error(json.error || `HTTP ${res.status}`);
+
+          // Reset visual
+          Object.keys(cart).forEach(k => delete cart[k]);
+          document.querySelectorAll('.class-qty').forEach(el => el.textContent = 'Seleccionadas: 0');
+          customPrice = null;
+          customNote  = "";
+          customInput.value = '';
+          customNoteEl.value = '';
+          renderSummary();
+
+          checkoutMsg.style.color = '#86efac';
+          checkoutMsg.textContent = `¡Venta realizada! Total $${Number(json.total).toFixed(2)}`;
+
+          // Refrescar resumen del día
+          setTimeout(() => window.location.reload(), 600);
+
+        } catch (e) {
+          checkoutMsg.style.color = '#ffb4b4';
+          checkoutMsg.textContent = `Error: ${e.message}`;
+        } finally {
+          checkoutBtn.disabled = false;
+          checkoutBtn.textContent = 'Realizar Venta';
+        }
+      });
+
+      function renderSummary() {
+        const entries = Object.values(cart).filter(it => it.qty > 0);
+        const subtotal = entries.reduce((sum, it) => sum + it.price * it.qty, 0);
+        const usingCustom = customPrice && customPrice > 0;
+
+        subtotalEl.textContent = (usingCustom ? customPrice : subtotal).toFixed(2);
+        checkoutBtn.disabled = !usingCustom && entries.length === 0;
+
+        if (usingCustom) {
+          summaryEl.textContent = 'Usando precio personalizado';
+          return;
+        }
+        if (!entries.length) {
+          summaryEl.textContent = '(sin clases)';
+          return;
+        }
+        const parts = entries.map(it => `${it.name} x${it.qty} → $${(it.price * it.qty).toFixed(2)}`);
+        summaryEl.textContent = parts.join('  •  ');
+      }
+
+      // Inicial
+      document.getElementById('custom-panel').style.display = 'none';
+      renderSummary();
+    });
+  </script>
+</body>
+</html>

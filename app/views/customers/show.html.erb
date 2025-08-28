@@ -1,0 +1,88 @@
+<%= stylesheet_link_tag 'customers_index', media: 'all' %>
+
+<div class="customers-wrap">
+  <div class="customers-card">
+
+    <div class="topbar">
+      <div class="title-actions">
+        <div class="title">Cliente</div>
+        <%= link_to "← Volver", customers_path, class: "btn btn-dark" %>
+
+        <%# Editar / Eliminar solo si es superusuario y hay registro cargado %>
+        <% if current_user.superuser? && @customer&.persisted? %>
+          <%= link_to "Editar", edit_customer_path(@customer), class: "btn" %>
+          <%= link_to "Eliminar",
+                      customer_path(@customer),
+                      data: { turbo_method: :delete, turbo_confirm: "¿Eliminar a #{@customer.name} (# #{@customer.client_number})?" },
+                      class: "btn btn-danger" %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="customers-body">
+      <div class="list-scroll" style="padding: 0 12px 12px;">
+        <div class="customer-detail card" style="margin-bottom:16px;">
+          <div style="display:flex; gap:16px; align-items:center;">
+            <div>
+              <% if @customer.photo&.attached? %>
+                <%= image_tag @customer.photo.variant(resize_to_limit: [110,110]),
+                              class: "avatar-sm", alt: @customer.name,
+                              style: "width:110px;height:110px;border-radius:12px;object-fit:cover;border:1px solid rgba(255,255,255,.12);" %>
+              <% else %>
+                <div class="avatar-sm" style="width:110px;height:110px;border-radius:12px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.12);">
+                  <span class="muted">Sin foto</span>
+                </div>
+              <% end %>
+            </div>
+            <div>
+              <h2 style="margin:0 0 4px 0;"><%= @customer.name %></h2>
+              <p class="kv"><span># Cliente:</span> <strong><%= @customer.client_number %></strong></p>
+              <p class="kv"><span>Plan:</span> <%= @customer.plan.to_s.titleize %></p>
+              <p class="kv"><span>Inscripción:</span> <%= @customer.enrollment_date&.strftime('%d %b %Y') %></p>
+              <p class="kv"><span>Próximo pago:</span> <%= @customer.next_payment_date&.strftime('%d %b %Y') %></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px;">
+          <h3 class="card-title" style="margin-bottom:10px;">
+            <span class="title-dot"></span>
+            <span>Accesos de por vida</span>
+          </h3>
+          <p class="kv" style="font-size:1.1rem;">
+            <span>Total de entradas:</span>
+            <strong><%= @access_count %></strong>
+          </p>
+        </div>
+
+        <% if @access_logs.present? %>
+          <div class="card">
+            <h3 class="card-title" style="margin-bottom:10px;">
+              <span class="title-dot"></span>
+              <span>Últimos accesos</span>
+            </h3>
+            <table class="customers-table">
+              <thead>
+                <tr>
+                  <th>Fecha/Hora</th>
+                  <th>Registró</th>
+                  <th>Detalle</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @access_logs.each do |log| %>
+                  <tr>
+                    <td><%= log.created_at.in_time_zone("America/Merida").strftime("%Y-%m-%d %H:%M:%S") %></td>
+                    <td><%= log.user&.name || "—" %></td>
+                    <td><%= log.details %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,111 @@
+<!-- app/views/ecommerce/_finance_panel.html.erb -->
+<style>
+  .finance-panel .grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:12px; }
+  .finance-card {
+    background: rgba(255,255,255,0.8);
+    border:1px solid rgba(0,0,0,.08);
+    border-radius:14px;
+    padding:12px;
+    backdrop-filter: blur(4px);
+  }
+  .finance-kpi { display:flex; flex-direction:column; gap:4px; }
+  .finance-kpi .label { color:#555; font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
+  .finance-kpi .value { font-size:18px; font-weight:800; }
+
+  .finance-table { width:100%; border-collapse:separate; border-spacing:0; }
+  .finance-table th, .finance-table td { padding:8px 10px; border-bottom:1px solid rgba(0,0,0,.08); white-space:nowrap; }
+  .finance-scroll { max-height: 360px; overflow:auto; }
+
+  @media (max-width: 1200px) {
+    .finance-panel .grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="finance-panel">
+  <div class="shop-header">
+    <h2>Finanzas</h2>
+  </div>
+
+  <!-- KPIs -->
+  <div class="grid">
+    <div class="finance-card finance-kpi">
+      <div class="label">Clientes registrados</div>
+      <div class="value"><%= @customers_total %></div>
+    </div>
+    <div class="finance-card finance-kpi">
+      <div class="label">Órdenes hoy</div>
+      <div class="value"><%= @orders_today_count %></div>
+    </div>
+    <div class="finance-card finance-kpi">
+      <div class="label">Ventas hoy</div>
+      <div class="value">$<%= sprintf('%.2f', @sales_today_total) %></div>
+    </div>
+    <div class="finance-card finance-kpi">
+      <div class="label">Utilidad hoy</div>
+      <div class="value">$<%= sprintf('%.2f', @profit_today) %></div>
+    </div>
+  </div>
+
+  <div class="grid" style="margin-top:12px;">
+    <div class="finance-card finance-kpi">
+      <div class="label">Ventas semana</div>
+      <div class="value">$<%= sprintf('%.2f', @sales_week_total) %></div>
+    </div>
+    <div class="finance-card finance-kpi">
+      <div class="label">Utilidad semana</div>
+      <div class="value">$<%= sprintf('%.2f', @profit_week) %></div>
+    </div>
+    <div class="finance-card finance-kpi">
+      <div class="label">Ventas mes</div>
+      <div class="value">$<%= sprintf('%.2f', @sales_month_total) %></div>
+    </div>
+    <div class="finance-card finance-kpi">
+      <div class="label">Utilidad año</div>
+      <div class="value">$<%= sprintf('%.2f', @profit_year) %></div>
+    </div>
+  </div>
+
+  <!-- Top productos por utilidad (30 días) -->
+  <div class="finance-card" style="margin-top:12px;">
+    <div class="label" style="margin-bottom:6px;">Top productos por utilidad (30 días)</div>
+    <div class="finance-scroll">
+      <table class="finance-table">
+        <thead><tr><th>Producto</th><th>Cant.</th><th>Ventas</th><th>Utilidad</th></tr></thead>
+        <tbody>
+          <% @top_products.each do |p| %>
+            <tr>
+              <td><%= p.name %></td>
+              <td><%= p.qty %></td>
+              <td>$<%= sprintf('%.2f', p.revenue.to_f) %></td>
+              <td><strong>$<%= sprintf('%.2f', p.profit.to_f) %></strong></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Resumen mensual por producto (12 meses) -->
+  <div class="finance-card" style="margin-top:12px;">
+    <div class="label" style="margin-bottom:6px;">Resumen mensual por producto (12 meses)</div>
+    <div class="finance-scroll">
+      <table class="finance-table">
+        <thead><tr><th>Mes</th><th>Producto</th><th>Cant.</th><th>Ventas</th><th>Utilidad</th></tr></thead>
+        <tbody>
+          <% @monthly_product_summary.each do |row| %>
+            <% month_label = row[:month].strftime('%b %Y') %>
+            <% row[:products].each do |prod| %>
+              <tr>
+                <td><%= month_label %></td>
+                <td><%= prod[:name] %></td>
+                <td><%= prod[:qty] %></td>
+                <td>$<%= sprintf('%.2f', prod[:revenue]) %></td>
+                <td><strong>$<%= sprintf('%.2f', prod[:profit]) %></strong></td>
+              </tr>
+            <% end %>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

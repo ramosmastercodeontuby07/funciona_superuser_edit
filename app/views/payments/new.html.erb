@@ -1,0 +1,107 @@
+<div class="form-panel">
+  <h1>Registrar Venta</h1>
+
+  <% if @payment.errors.any? %>
+    <div class="form-errors">
+      <h2><%= pluralize(@payment.errors.count, "error") %> impiden guardar la venta:</h2>
+      <ul>
+        <% @payment.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <%= form_with model: @payment,
+                url: payments_path,
+                local: true,
+                html: { multipart: true, id: "payment-form" } do |f| %>
+
+    <div>
+      <%= f.label :full_name, 'Nombre Completo' %>
+      <%= f.text_field :full_name,
+                       class: 'form-input',
+                       required: true %>
+    </div>
+
+    <div>
+      <%= f.label :client_number, 'Número de Cliente' %>
+      <%= f.number_field :client_number,
+                         class: 'form-input',
+                         readonly: true,
+                         required: true %>
+    </div>
+
+    <div>
+      <%= f.label :photo, 'Foto del Cliente' %>
+      <%= f.file_field :photo,
+                       accept: 'image/*',
+                       class: 'form-input' %>
+    </div>
+
+    <div>
+      <%= f.label :plan_type, 'Tipo de Plan' %>
+      <%= f.select :plan_type,
+            options_for_select([['Día','dia'], ['Semana','semana'], ['Mes','mes']], @payment.plan_type),
+            { prompt: 'Selecciona un plan' },
+            { class: 'form-input', id: 'plan-type-select', required: true } %>
+    </div>
+
+    <div>
+      <%= f.label :payment_method, 'Método de Pago' %>
+      <%= f.select :payment_method,
+            options_for_select([['Efectivo','efectivo'], ['Transferencia','transferencia']], @payment.payment_method),
+            { prompt: 'Selecciona método' },
+            class: 'form-input',
+            required: true %>
+    </div>
+
+    <div>
+      <%= f.label :age, 'Edad (opcional)' %>
+      <%= f.number_field :age,
+                         class: 'form-input',
+                         min: 1,
+                         placeholder: 'Ej. 30' %>
+    </div>
+
+    <div>
+      <%= f.label :weight, 'Peso (kg) (opcional)' %>
+      <%= f.number_field :weight,
+                         class: 'form-input',
+                         step: 0.1,
+                         placeholder: 'Ej. 75.5' %>
+    </div>
+
+    <div>
+      <%= f.label :cost, 'Total a Pagar' %>
+      <span id="cost-display"
+            class="form-input"
+            style="display:inline-block; border:1px solid #cbd5e0; border-radius:8px; padding:12px 16px;">
+        $0.00
+      </span>
+    </div>
+
+    <div>
+      <%= f.submit 'Registrar Venta', class: 'form-button' %>
+      <%= link_to '← Volver al Gym Control',
+                  ecommerce_path,
+                  class: 'form-button secondary' %>
+    </div>
+  <% end %>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const costMap = { dia: 30, semana: 120, mes: 265 };
+    const planSelect  = document.getElementById('plan-type-select');
+    const costDisplay = document.getElementById('cost-display');
+
+    function updateCost() {
+      const plan = planSelect.value;
+      costDisplay.textContent = `$${(costMap[plan] || 0).toFixed(2)}`;
+    }
+
+    planSelect.addEventListener('change', updateCost);
+    updateCost(); // inicializa al cargar
+  });
+</script>

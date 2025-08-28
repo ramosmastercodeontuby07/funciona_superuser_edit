@@ -1,0 +1,68 @@
+<!-- app/views/backoffice/products/edit.html.erb -->
+<style>
+  .minimal-wrap {
+    max-width: 1080px;           /* más grande */
+    margin: 0 auto;
+    padding: 0 20px;
+    color: #111;
+  }
+  .minimal-card {
+    background: rgba(255,255,255,0.65);
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 20px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 8px 24px rgba(0,0,0,.06);
+    overflow: hidden;
+  }
+  .minimal-header {
+    padding: 22px 24px 10px;
+    text-align: center;
+  }
+  .minimal-title {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: .2px;
+  }
+  .minimal-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 24px 6px;
+  }
+  .minimal-body {
+    padding: 24px;
+  }
+  .btn { display:inline-flex; align-items:center; gap:6px; padding:10px 14px; border-radius:12px; border:1px solid rgba(0,0,0,.12); background:#fff; color:#111; text-decoration:none; }
+  .btn:hover { background:#f8f8f8; }
+  .btn-dark { background:#111; color:#fff; border-color:#111; }
+  .btn-primary { background:#2563eb; color:#fff; border-color:#2563eb; }
+  #product-form .grid { gap: 16px; }
+  #product-form label { font-weight: 600; }
+  #product-form .input, #product-form input[type="text"], #product-form input[type="number"], #product-form select {
+    width: 100%;
+    border: 1px solid rgba(0,0,0,.15);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: #fff;
+    color: #111;
+  }
+  #product-form .mt-6 { margin-top: 22px; }
+</style>
+
+<div class="container mx-auto px-4 py-8" style="color:#111;">
+  <div class="minimal-wrap">
+    <div class="minimal-card">
+      <div class="minimal-header">
+        <div class="minimal-title">Editar producto</div>
+      </div>
+      <div class="minimal-actions">
+        <%= link_to "Inicio", ecommerce_path, class: "btn btn-dark" %>
+        <%= link_to "Volver al Backoffice", backoffice_products_path, class: "btn" %>
+      </div>
+      <div class="minimal-body">
+        <%= render "form", product: @product %>
+      </div>
+    </div>
+  </div>
+</div>

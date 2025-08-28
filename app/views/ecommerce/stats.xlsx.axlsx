@@ -1,0 +1,80 @@
+
+def buckets_from(hash)
+  cash = card = transfer = 0.0
+  hash.each do |k, v|
+    key = k.to_s.downcase.strip
+    case key
+    when "efectivo", "cash" then cash += v.to_f
+    when "transferencia", "transfer", "transf", "spei" then transfer += v.to_f
+    when "tarjeta", "tarjetas", "debito", "débito", "credito", "crédito", "card" then card += v.to_f
+    end
+  end
+  [cash, card, transfer]
+end
+
+wb = xlsx_package.workbook
+
+# ===== Sheet 1: Resumen =====
+wb.add_worksheet(name: "Resumen") do |sheet|
+  sheet.add_row ["Resumen (#{@date_label})"]
+  sheet.add_row ["Órdenes", @orders_count]
+  sheet.add_row ["Total", @gross_total]
+  sheet.add_row ["Promedio", @avg_ticket]
+  sheet.add_row ["Efectivo", @cash_total]
+  sheet.add_row ["Transferencias", @transfer_total]
+  sheet.add_row ["Tarjetas", @card_total]
+  sheet.add_row ["Total contado", @cashier_total]
+  sheet.add_row ["Clientes nuevos", @registered_count]
+  sheet.add_row ["Visitantes", @visitors_count]
+end
+
+# ===== Sheet 2: Ventas por día =====
+wb.add_worksheet(name: "Ventas por día") do |sheet|
+  sheet.add_row ["Fecha", "Órdenes", "Total", "Efectivo", "Transferencias", "Tarjetas"]
+  days = (@by_day_total.keys + @by_day_orders.keys + @by_day_method.keys.map { |(d, _)| d }).uniq.compact.sort
+  days.each do |day|
+    day_hash = @by_day_method.select { |(d, _), _| d == day }.transform_keys { |(_, m)| m }
+    cash, card, transfer = buckets_from(day_hash)
+    sheet.add_row [day, @by_day_orders[day].to_i, @by_day_total[day].to_f, cash, transfer, card]
+  end
+end
+
+# ===== Sheet 3: Órdenes (detalle) =====
+wb.add_worksheet(name: "Órdenes") do |sheet|
+  sheet.add_row ["ID", "Fecha/Hora", "Vendedor", "Método", "Total", "Items", "Detalle"]
+  @orders.find_each do |o|
+    total  = o.order_items.sum("quantity * price").to_f
+    items  = o.order_items.sum(:quantity)
+    detail = o.order_items.map { |it| "#{it.product&.name} x#{it.quantity} @ #{sprintf("$%.2f", it.price)}" }.join(" | ")
+    sheet.add_row [
+      o.id,
+      o.created_at.in_time_zone("America/Merida").strftime("%Y-%m-%d %H:%M"),
+      o.user&.name,
+      o.payment_method,
+      total,
+      items,
+      detail
+    ]
+  end
+end
+
+# ===== Sheet 4: Clientes nuevos =====
+wb.add_worksheet(name: "Clientes") do |sheet|
+  sheet.add_row ["ID", "Nombre", "Inscripción", "Creado"]
+  @registered_customers.each do |c|
+    sheet.add_row [
+      c.id,
+      c.name,
+      (c.enrollment_date&.strftime("%Y-%m-%d")),
+      c.created_at.in_time_zone("America/Merida").strftime("%Y-%m-%d %H:%M")
+    ]
+  end
+end
+
+# ===== Sheet 5: Accesos por día =====
+wb.add_worksheet(name: "Accesos") do |sheet|
+  sheet.add_row ["Fecha", "Entradas"]
+  @visitors_by_day.sort_by { |k, _| k }.each do |day, cnt|
+    sheet.add_row [day, cnt]
+  end
+end

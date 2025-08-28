@@ -1,0 +1,23 @@
+<% content_for :title, "Editar usuario de Staff" %>
+
+<div class="panel shop-panel">
+  <div class="shop-header" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+    <h2>Editar usuario de Staff</h2>
+    <div class="header-actions">
+      <%= link_to "Usuarios (Backoffice)", backoffice_staff_users_path, class: "btn btn-light" %>
+      <%= link_to "Productos", backoffice_products_path, class: "btn btn-light" %>
+    </div>
+  </div>
+
+  <% if flash[:notice] %>
+    <div class="alert"><%= flash[:notice] %></div>
+  <% end %>
+
+  <% if flash[:alert] %>
+    <div class="alert"><%= flash[:alert] %></div>
+  <% end %>
+
+  <div class="card">
+    <%= render "form", user: @user %>
+  </div>
+</div>

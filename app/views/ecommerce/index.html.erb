@@ -1,0 +1,603 @@
+<!-- app/views/ecommerce/index.html.erb -->
+
+<!-- Ajustes mínimos para pantalla completa sin romper tus estilos existentes -->
+<style>
+  .split-container.full-screen {
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    padding: 12px;
+    box-sizing: border-box;
+  }
+  .panel {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,.06);
+    overflow: auto;
+  }
+  .gym-panel.full-height {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .shop-panel { min-height: 0; }
+  .bottom-dock {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    border-top: 1px solid #eee;
+    padding-top: 8px;
+  }
+  .client-search-form {
+    display: flex;
+    gap: 8px;
+    margin: 8px 0 12px;
+  }
+  .client-search-form .form-input {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  @media (max-width: 1100px) {
+    .split-container.full-screen {
+      grid-template-columns: 1fr;
+      height: auto;
+      min-height: 100vh;
+    }
+  }
+</style>
+
+<div class="split-container full-screen">
+
+  <!-- ===================== Panel izquierdo: Gym Control ===================== -->
+  <div class="panel gym-panel full-height">
+    <div class="gym-header" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;">
+      <h2 style="margin:0;">Gym Control</h2>
+      <div id="datetime" class="current-time" style="opacity:.75;font-size:14px;"></div>
+    </div>
+
+    <p class="user-greeting" style="padding:0 12px;"><strong>Usuario:</strong> <%= current_user.name %></p>
+
+    <div class="top-actions" style="padding:0 12px 8px;">
+      <%= button_to 'Cerrar Sesión',
+                    logout_path,
+                    method: :delete,
+                    form: { data: { turbo: false } },
+                    class: 'btn btn-danger' %>
+    </div>
+
+    <!-- 🔎 Buscador de cliente (restaurado) -->
+    <div style="padding:0 12px;">
+      <%= form_with url: ecommerce_path, method: :get, local: true, class: 'client-search-form' do |f| %>
+        <%= f.text_field :search_number,
+                         value: params[:search_number],
+                         placeholder: 'Buscar # Cliente',
+                         class: 'form-input' %>
+        <%= f.submit 'Buscar', class: 'btn btn-accent' %>
+      <% end %>
+    </div>
+
+    <!-- Control de Acceso -->
+    <div id="access-panel" class="card accent-border" style="margin:0 12px 12px;">
+      <div class="card-title" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span class="title-dot"></span>
+        <h3 style="margin:0;">Control de Acceso</h3>
+      </div>
+
+      <% if defined?(@access_customer) %>
+        <% if @access_customer %>
+          <p class="kv"><span>Acceso:</span>
+            <span class="access-pill <%= @access_allowed ? 'ok' : 'debt' %>">
+              <%= @access_allowed ? 'Bienvenido' : 'DEUDOR' %>
+            </span>
+          </p>
+          <p class="kv"><span>Inscripción:</span>
+            <%= @access_customer.enrollment_date.strftime('%d %b %Y') %>
+          </p>
+          <p class="kv"><span>Próximo pago:</span>
+            <% if @access_customer.next_payment_date.present? %>
+              <%= @access_customer.next_payment_date.strftime('%d %b %Y') %>
+            <% else %>
+              —
+            <% end %>
+          </p>
+          <p class="kv"><span>Plan:</span> <%= @access_customer.plan.titleize %></p>
+        <% else %>
+          <p class="empty-state">Cliente no encontrado.</p>
+        <% end %>
+      <% end %>
+    </div>
+
+    <!-- Detalle de cliente buscado -->
+    <% if defined?(@allowed) && @allowed %>
+      <div class="card" style="margin:0 12px 12px;">
+        <div class="card-title" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span class="title-dot"></span>
+          <h3 style="margin:0;">Cliente</h3>
+        </div>
+        <div class="customer-info">
+          <% if @customer.photo.attached? %>
+            <%= image_tag @customer.photo.variant(resize_to_limit: [200,200]).processed,
+                          alt: 'Foto de cliente',
+                          class: 'avatar' %>
+          <% end %>
+          <p class="kv"><span>Nombre:</span> <%= @customer.name %></p>
+          <p class="kv"><span>Inscrito el:</span> <%= @customer.enrollment_date.strftime('%d %b %Y') %></p>
+          <p class="kv"><span>Plan:</span> <%= @customer.plan.titleize %></p>
+          <p class="kv"><span>Próximo pago:</span>
+            <%= (@customer.next_payment_date || (@customer.enrollment_date + 30)).strftime('%d %b %Y') %>
+          </p>
+        </div>
+      </div>
+    <% elsif defined?(@allowed) %>
+      <p class="alert" style="margin:0 12px 12px;">Cliente no registrado.</p>
+    <% end %>
+
+    <!-- Empuja el resto hacia abajo -->
+    <div class="flex-spacer"></div>
+
+    <!-- Dock inferior: métricas + acciones -->
+    <div class="bottom-dock" style="padding:8px 12px;">
+      <div class="metrics-row" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;">
+        <div class="metric-card">
+          <div class="metric-head">Ventas de Hoy</div>
+          <div class="metric-body">
+            <div class="metric-line"><span>Órdenes</span><strong><%= @today_sales_count %></strong></div>
+            <div class="metric-line"><span>Total</span><strong>$<%= sprintf('%.2f', @today_sales_total) %></strong></div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-head">Personas que han entrado</div>
+          <div class="metric-body">
+            <div class="metric-huge"><%= @today_access_count %></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-buttons" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;">
+        <!-- visibles para TODOS -->
+        <%= link_to 'Clientes', customers_path, class: 'btn btn-dark' %>
+        <%= link_to 'Registrar Cliente', new_customer_path, class: 'btn btn-dark' %>
+
+        <!-- Botón de descarga de Excel (hoy) SOLO SUPERUSUARIO -->
+        <% if current_user.superuser? %>
+          <%= link_to 'Descargar Excel (Hoy)',
+                      stats_path(from: Date.current, to: Date.current, format: :xlsx),
+                      class: 'btn btn-accent' %>
+        <% end %>
+
+        <!-- 'Clases' SOLO para Griselle Tellez -->
+        <% if current_user.name.to_s.strip.casecmp('Griselle Tellez').zero? %>
+          <%= link_to 'Clases', class_types_path, class: 'btn btn-accent' %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== Panel derecho: Tienda o Finanzas ===================== -->
+  <div class="panel shop-panel">
+    <% if current_user.respond_to?(:finance_admin?) && current_user.finance_admin? %>
+      <!-- ======= Finanzas (solo Mike / Jorge Vargas / Yamil Vargas) ======= -->
+      <div class="finance-panel-root" style="padding:10px 12px;">
+        <div class="shop-header">
+          <h2>Finanzas</h2>
+        </div>
+
+        <!-- KPIs fila 1 -->
+        <div class="grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;">
+          <div class="card" style="background:rgba(255,255,255,.8);border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:12px;">
+            <div class="label" style="color:#555;font-size:12px;text-transform:uppercase;letter-spacing:.08em;">Clientes registrados</div>
+            <div class="value" style="font-size:18px;font-weight:800;"><%= @customers_total %></div>
+          </div>
+          <div class="card" style="background:rgba(255,255,255,.8);border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:12px;">
+            <div class="label" style="color:#555;font-size:12px;text-transform:uppercase;letter-spacing:.08em;">Órdenes hoy</div>
+            <div class="value" style="font-size:18px;font-weight:800;"><%= @orders_today_count %></div>
+          </div>
+        </div>
+
+        <!-- KPIs fila 2 -->
+        <div class="grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px;">
+          <div class="card" style="background:rgba(255,255,255,.8);border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:12px;">
+            <div class="label" style="color:#555;font-size:12px;text-transform:uppercase;letter-spacing:.08em;">Ventas hoy</div>
+            <div class="value" style="font-size:18px;font-weight:800;">$<%= sprintf('%.2f', @sales_today_total) %></div>
+          </div>
+          <div class="card" style="background:rgba(255,255,255,.8);border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:12px;">
+            <div class="label" style="color:#555;font-size:12px;text-transform:uppercase;letter-spacing:.08em;">Utilidad hoy</div>
+            <div class="value" style="font-size:18px;font-weight:800;">$<%= sprintf('%.2f', @profit_today) %></div>
+          </div>
+        </div>
+
+        <!-- KPIs fila 3 -->
+        <div class="grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px;">
+          <div class="card" style="background:rgba(255,255,255,.8);border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:12px;">
+            <div class="label" style="color:#555;font-size:12px;text-transform:uppercase;letter-spacing:.08em;">Ventas semana</div>
+            <div class="value" style="font-size:18px;font-weight:800;">$<%= sprintf('%.2f', @sales_week_total) %></div>
+          </div>
+          <div class="card" style="background:rgba(255,255,255,.8);border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:12px;">
+            <div class="label" style="color:#555;font-size:12px;text-transform:uppercase;letter-spacing:.08em;">Utilidad semana</div>
+            <div class="value" style="font-size:18px;font-weight:800;">$<%= sprintf('%.2f', @profit_week) %></div>
+          </div>
+        </div>
+
+        <!-- KPIs fila 4 -->
+        <div class="grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px;">
+          <div class="card" style="background:rgba(255,255,255,.8);border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:12px;">
+            <div class="label" style="color:#555;font-size:12px;text-transform:uppercase;letter-spacing:.08em;">Ventas mes</div>
+            <div class="value" style="font-size:18px;font-weight:800;">$<%= sprintf('%.2f', @sales_month_total) %></div>
+          </div>
+          <div class="card" style="background:rgba(255,255,255,.8);border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:12px;">
+            <div class="label" style="color:#555;font-size:12px;text-transform:uppercase;letter-spacing:.08em;">Utilidad año</div>
+            <div class="value" style="font-size:18px;font-weight:800;">$<%= sprintf('%.2f', @profit_year) %></div>
+          </div>
+        </div>
+
+        <!-- Top productos por utilidad (30 días) -->
+        <div class="card" style="background:rgba(255,255,255,.8);border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:12px;margin-top:12px;">
+          <div class="label" style="color:#555;font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Top productos por utilidad (30 días)</div>
+          <div style="max-height: 300px; overflow:auto;">
+            <table class="finance-table" style="width:100%;border-collapse:separate;border-spacing:0;">
+              <thead><tr><th>Producto</th><th>Cant.</th><th>Ventas</th><th>Utilidad</th></tr></thead>
+              <tbody>
+                <% @top_products.each do |p| %>
+                  <tr>
+                    <td><%= p.name %></td>
+                    <td><%= p.qty %></td>
+                    <td>$<%= sprintf('%.2f', p.revenue.to_f) %></td>
+                    <td><strong>$<%= sprintf('%.2f', p.profit.to_f) %></strong></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Resumen mensual por producto (12 meses) -->
+        <div class="card" style="background:rgba(255,255,255,.8);border:1px solid rgba(0,0,0,.08);border-radius:14px;padding:12px;margin-top:12px;">
+          <div class="label" style="color:#555;font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Resumen mensual por producto (12 meses)</div>
+          <div style="max-height: 300px; overflow:auto;">
+            <table class="finance-table" style="width:100%;border-collapse:separate;border-spacing:0;">
+              <thead><tr><th>Mes</th><th>Producto</th><th>Cant.</th><th>Ventas</th><th>Utilidad</th></tr></thead>
+              <tbody>
+                <% @monthly_product_summary.each do |row| %>
+                  <% month_label = row[:month].strftime('%b %Y') %>
+                  <% row[:products].each do |prod| %>
+                    <tr>
+                      <td><%= month_label %></td>
+                      <td><%= prod[:name] %></td>
+                      <td><%= prod[:qty] %></td>
+                      <td>$<%= sprintf('%.2f', prod[:revenue]) %></td>
+                      <td><strong>$<%= sprintf('%.2f', prod[:profit]) %></strong></td>
+                    </tr>
+                  <% end %>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    <% else %>
+      <!-- ======= Tienda Online (todos los demás usuarios) ======= -->
+      <div class="shop-header" style="padding:10px 12px;">
+        <h2>Tienda Online</h2>
+        <div class="product-tabs" style="display:flex;gap:6px;align-items:center;">
+          <button type="button" class="tab-btn active" data-target="bebidas">Bebidas</button>
+          <button type="button" class="tab-btn" data-target="suplementos">Suplementos &amp; Barritas</button>
+
+          <% if current_user.superuser? %>
+            <%= link_to 'Backoffice', backoffice_products_path, class: 'btn btn-light', style: 'margin-left:auto;' %>
+            <%= link_to 'Crear Staff', new_backoffice_staff_user_path, class: 'btn btn-accent', style: 'margin-left:8px;' %>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Sección Bebidas -->
+      <div id="bebidas" class="product-section active-section" style="padding:0 12px 12px;">
+        <div class="product-grid">
+          <% @bebidas.each do |product| %>
+            <div class="product-card" data-id="<%= product.id %>">
+              <% if product.image.attached? %>
+                <%= image_tag product.image.variant(resize_to_limit: [220,220]).processed,
+                              alt: product.name,
+                              class: 'product-img' %>
+              <% end %>
+              <div class="product-info">
+                <h3><%= product.name %></h3>
+                <p class="price">$<%= number_with_precision(product.price, precision: 2) %></p>
+                <p class="stock-info">Stock: <%= product.stock %></p>
+              </div>
+              <div class="product-actions">
+                <button class="btn btn-add add-btn"
+                        data-id="<%= product.id %>"
+                        data-name="<%= product.name %>"
+                        data-price="<%= product.price %>"
+                        <%= 'disabled' if product.stock.zero? %>>
+                  Agregar
+                </button>
+                <% if current_user.superuser? %>
+                  <%= link_to 'Editar', edit_product_path(product), class: 'btn btn-light edit-btn' %>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Sección Suplementos -->
+      <div id="suplementos" class="product-section" style="padding:0 12px 12px;">
+        <div class="product-grid">
+          <% @suplementos.each do |product| %>
+            <div class="product-card" data-id="<%= product.id %>">
+              <% if product.image.attached? %>
+                <%= image_tag product.image.variant(resize_to_limit: [220,220]).processed,
+                              alt: product.name,
+                              class: 'product-img' %>
+              <% end %>
+              <div class="product-info">
+                <h3><%= product.name %></h3>
+                <p class="price">$<%= number_with_precision(product.price, precision: 2) %></p>
+                <p class="stock-info">Stock: <%= product.stock %></p>
+              </div>
+              <div class="product-actions">
+                <button class="btn btn-add add-btn"
+                        data-id="<%= product.id %>"
+                        data-name="<%= product.name %>"
+                        data-price="<%= product.price %>"
+                        <%= 'disabled' if product.stock.zero? %>>
+                  Agregar
+                </button>
+                <% if current_user.superuser? %>
+                  <%= link_to 'Editar', edit_product_path(product), class: 'btn btn-light edit-btn' %>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Mini-carrito -->
+      <div id="mini-cart" class="mini-cart" style="padding:0 12px 12px;">
+        <div class="cart-head" style="display:flex;align-items:center;justify-content:space-between;">
+          <h3>Carrito</h3>
+          <button id="show-stats-btn" class="btn btn-outline">Ventas hechas</button>
+        </div>
+
+        <!-- ===== Formulario de checkout (solo agrupa radios; no se envía por HTML) ===== -->
+        <%= form_with url: orders_path, scope: :order, method: :post, local: true, html: { id: "checkout-form" } do |f| %>
+          <!-- Método de pago -->
+          <div class="payment-method" style="margin: 8px 0;">
+            <label style="margin-right:8px;">Método de pago:</label>
+            <label style="margin-right:6px;">
+              <input type="radio" name="payment_method" value="efectivo" checked>
+              Efectivo
+            </label>
+            <label>
+              <input type="radio" name="payment_method" value="transferencia">
+              Transferencia
+            </label>
+          </div>
+
+          <ul id="cart-items" class="cart-items"></ul>
+
+          <div class="cart-footer" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <div class="cart-total">Total: $<span id="cart-total">0.00</span></div>
+            <!-- Importante: type="button" para que NO haga submit del form -->
+            <button id="checkout-btn" type="button" class="btn btn-accent">Realizar Venta</button>
+          </div>
+        <% end %>
+
+        <div id="checkout-message" class="checkout-message" style="margin-top:6px;"></div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<% content_for :body_end do %>
+<script>
+(function() {
+  function initOnce() {
+    if (document.body.dataset.ecInitialized === "1") return false;
+    document.body.dataset.ecInitialized = "1";
+    return true;
+  }
+
+  async function fetchJSON(url, options = {}) {
+    const opts = {
+      credentials: 'same-origin',
+      headers: { 'Accept': 'application/json', ...(options.headers || {}) },
+      ...options
+    };
+    const res = await fetch(url, opts);
+    const ctype = res.headers.get('content-type') || '';
+    let data;
+    if (ctype.includes('application/json')) {
+      data = await res.json();
+    } else {
+      const text = await res.text();
+      const err = new Error(`Respuesta no-JSON (${res.status})`);
+      err._raw = text; err._status = res.status;
+      throw err;
+    }
+    return { res, data };
+  }
+
+  function money(n) { return Number(n || 0).toFixed(2); }
+
+  function initEcommercePage() {
+    // Hora en vivo
+    const dtEl = document.getElementById('datetime');
+    function updateDateTime() {
+      const now = new Date();
+      const h = now.getHours().toString().padStart(2,'0');
+      const m = now.getMinutes().toString().padStart(2,'0');
+      const s = now.getSeconds().toString().padStart(2,'0');
+      const d = now.getDate().toString().padStart(2,'0');
+      const mo = (now.getMonth()+1).toString().padStart(2,'0');
+      const y = now.getFullYear();
+      if (dtEl) dtEl.textContent = `${h}:${m}:${s} ${d}/${mo}/${y}`;
+    }
+    updateDateTime(); setInterval(updateDateTime, 1000);
+
+    // Ocultar paneles de acceso tras 6s (opcional)
+    setTimeout(() => {
+      ['.customer-info', '.alert', '#access-panel'].forEach(sel => {
+        document.querySelectorAll(sel).forEach(el => { if (el) el.style.display = 'none'; });
+      });
+    }, 6000);
+
+    const miniCartEl = document.getElementById('mini-cart');
+    if (!miniCartEl) return;
+
+    const csrfToken = (document.querySelector("meta[name='csrf-token']")?.content) || (window.CSRF_TOKEN || '');
+    const addUrl    = '<%= add_to_cart_path %>';
+    const removeUrl = '<%= remove_from_cart_path %>';
+    const orderUrl  = '<%= orders_path %>';
+    let cart = {};
+
+    // Tabs productos
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.product-section').forEach(sec => sec.classList.remove('active-section'));
+        document.getElementById(btn.dataset.target)?.classList.add('active-section');
+      });
+    });
+
+    // Ver stats
+    const statsBtn = document.getElementById('show-stats-btn');
+    if (statsBtn) statsBtn.addEventListener('click', () => { window.location = '<%= stats_path %>'; });
+
+    // Agregar al carrito
+    document.querySelectorAll('.add-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (btn.disabled) return;
+        const id = btn.dataset.id;
+        const name = btn.dataset.name;
+        const price = parseFloat(btn.dataset.price);
+
+        btn.disabled = true;
+        try {
+          const { res, data } = await fetchJSON(addUrl, {
+            method: 'POST',
+            headers: { 'X-CSRF-Token': csrfToken, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ product_id: id })
+          });
+          if (!res.ok || !data.success) throw new Error(data?.error || `HTTP ${res.status}`);
+
+          const card = document.querySelector(`.product-card[data-id='${id}']`);
+          const sc = card?.querySelector('.stock-info');
+          if (sc) sc.textContent = `Stock: ${data.new_stock}`;
+
+          btn.disabled = data.new_stock === 0;
+
+          cart[id] = cart[id] || { id, name, price, qty: 0 };
+          cart[id].qty++;
+          renderCart();
+        } catch (e) {
+          btn.disabled = false;
+          alert('Error al agregar: ' + (e.message || e));
+          if (e._raw) console.error('Respuesta no-JSON:', e._raw);
+        }
+      });
+    });
+
+    function renderCart() {
+      const itemsEl = document.getElementById('cart-items');
+      const totalEl = document.getElementById('cart-total');
+      if (!itemsEl || !totalEl) return;
+
+      itemsEl.innerHTML = '';
+      let total = 0;
+      Object.values(cart).forEach(item => {
+        total += item.price * item.qty;
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <span>${item.name} <em>x${item.qty}</em></span>
+          <span class="line-total">$${money(item.price * item.qty)}</span>
+          <button class="btn btn-ghost remove-from-cart-btn" data-id="${item.id}">−</button>
+        `;
+        itemsEl.appendChild(li);
+      });
+      totalEl.textContent = money(total);
+
+      document.querySelectorAll('.remove-from-cart-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.dataset.id;
+          btn.disabled = true;
+          try {
+            const { res, data } = await fetchJSON(removeUrl, {
+              method: 'DELETE',
+              headers: { 'X-CSRF-Token': csrfToken, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ product_id: id })
+            });
+            if (!res.ok || !data.success) throw new Error(data?.error || `HTTP ${res.status}`);
+
+            const card = document.querySelector(`.product-card[data-id='${id}']`);
+            const sc = card?.querySelector('.stock-info');
+            if (sc) sc.textContent = `Stock: ${data.new_stock}`;
+
+            const addBtn = card?.querySelector('.add-btn');
+            if (addBtn && data.new_stock > 0) addBtn.disabled = false;
+
+            if (cart[id]) {
+              cart[id].qty--;
+              if (cart[id].qty <= 0) delete cart[id];
+            }
+            renderCart();
+          } catch (e) {
+            alert('Error al quitar: ' + (e.message || e));
+            if (e._raw) console.error('Respuesta no-JSON:', e._raw);
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      });
+    }
+
+    // Checkout (fetch)
+    const checkoutBtn = document.getElementById('checkout-btn');
+    if (checkoutBtn) {
+      checkoutBtn.addEventListener('click', async () => {
+        const itemsArray = Object.values(cart).map(i => ({ id: i.id, quantity: i.qty }));
+        if (!itemsArray.length) { alert('El carrito está vacío'); return; }
+
+        const pmEl = document.querySelector('input[name="payment_method"]:checked');
+        const payment_method = pmEl ? pmEl.value : 'efectivo';
+
+        checkoutBtn.disabled = true; checkoutBtn.textContent = 'Procesando...';
+        try {
+          const { res, data } = await fetchJSON(orderUrl, {
+            method: 'POST',
+            headers: { 'X-CSRF-Token': csrfToken, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: itemsArray, payment_method })
+          });
+
+          if (!res.ok || !data.success) throw new Error(data?.error || `HTTP ${res.status}`);
+
+          cart = {};
+          renderCart();
+
+          const msg = document.getElementById('checkout-message');
+          if (msg) msg.textContent = `¡Venta realizada! Pedido #${data.order_id}`;
+        } catch (e) {
+          alert('Error al realizar la venta: ' + (e.message || e));
+          if (e._raw) console.error('Respuesta no-JSON:', e._raw);
+        } finally {
+          checkoutBtn.disabled = false; checkoutBtn.textContent = 'Realizar Venta';
+        }
+      });
+    }
+
+    renderCart();
+  }
+
+  function onLoad() {
+    if (!initOnce()) return;
+    initEcommercePage();
+  }
+  document.addEventListener('turbo:load', onLoad);
+  document.addEventListener('DOMContentLoaded', onLoad);
+})();
+</script>
+<% end %>

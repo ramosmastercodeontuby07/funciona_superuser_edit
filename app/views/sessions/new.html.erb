@@ -1,0 +1,120 @@
+<!-- app/views/sessions/new.html.erb -->
+<div class="login-page">
+  <div class="login-container">
+    <div class="login-card">
+      <h1 class="login-title">Iniciar sesión</h1>
+
+      <% if flash[:alert].present? %>
+        <div class="alert alert-danger"><%= flash[:alert] %></div>
+      <% end %>
+      <% if flash[:notice].present? %>
+        <div class="alert alert-info"><%= flash[:notice] %></div>
+      <% end %>
+
+      <%= form_with url: login_path, method: :post, local: true, html: { class: "login-form", id: "login-form" } do %>
+        <div class="form-group">
+          <label for="name">Nombre</label>
+          <%= text_field_tag :name, params[:name], id: "name", class: "form-input", autocomplete: "username", placeholder: "Tu nombre", required: true %>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <%= password_field_tag :password, nil, id: "password", class: "form-input", autocomplete: "current-password", placeholder: "••••••••", required: true %>
+        </div>
+
+        <!-- Aparece solo si el usuario detectado es superuser -->
+        <div class="form-group" id="secret-code-group" hidden>
+          <label for="secret_code">Código secreto (solo superusuario)</label>
+          <%= password_field_tag :secret_code, nil, id: "secret_code", class: "form-input", autocomplete: "off", placeholder: "Código secreto" %>
+        </div>
+
+        <!-- Mensaje informativo del rol -->
+        <div id="role-hint" class="role-hint" hidden></div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-accent">Entrar</button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const nameInput     = document.getElementById('name');
+  const passInput     = document.getElementById('password');
+  const secretGroup   = document.getElementById('secret-code-group');
+  const secretInput   = document.getElementById('secret_code');
+  const roleHint      = document.getElementById('role-hint');
+  const form          = document.getElementById('login-form');
+
+  let detectedRole = null;
+  let debounceTimer = null;
+
+  function setHidden(el, hide) { el.hidden = !!hide; }
+
+  function updateUIForRole(role) {
+    detectedRole = role;
+    if (role === 'superuser') {
+      setHidden(secretGroup, false);
+      // sólo exigimos secret_code en superuser
+      secretInput.setAttribute('required', 'required');
+      roleHint.textContent = 'Rol detectado: superusuario (se requiere código secreto)';
+      setHidden(roleHint, false);
+      roleHint.className = 'role-hint ok';
+    } else if (role === 'normal') {
+      setHidden(secretGroup, true);
+      secretInput.removeAttribute('required');
+      secretInput.value = '';
+      roleHint.textContent = 'Rol detectado: usuario normal';
+      setHidden(roleHint, false);
+      roleHint.className = 'role-hint ok';
+    } else if (role === 'not_found') {
+      setHidden(secretGroup, true);
+      secretInput.removeAttribute('required');
+      secretInput.value = '';
+      roleHint.textContent = 'Usuario o contraseña inválidos';
+      setHidden(roleHint, false);
+      roleHint.className = 'role-hint warn';
+    } else {
+      // estado inicial / vacío
+      setHidden(roleHint, true);
+    }
+  }
+
+  async function checkRole() {
+    const name = (nameInput.value || '').trim();
+    const pwd  = (passInput.value || '').trim();
+    if (!name || !pwd) { updateUIForRole(null); return; }
+
+    try {
+      const url  = `<%= check_role_path %>?name=${encodeURIComponent(name)}&password=${encodeURIComponent(pwd)}`;
+      const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = await resp.json();
+      updateUIForRole(data && data.role ? data.role : null);
+    } catch (e) {
+      updateUIForRole(null);
+    }
+  }
+
+  function debounceCheckRole() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(checkRole, 300);
+  }
+
+  nameInput.addEventListener('input', debounceCheckRole);
+  passInput.addEventListener('input', debounceCheckRole);
+  nameInput.addEventListener('blur', checkRole);
+  passInput.addEventListener('blur', checkRole);
+
+  // Validación en submit: si es superuser, exigir secret_code
+  form.addEventListener('submit', (e) => {
+    if (detectedRole === 'superuser' && !(secretInput.value || '').trim()) {
+      e.preventDefault();
+      alert('Para superusuario debes ingresar el código secreto.');
+      secretInput.focus();
+    }
+  });
+});
+</script>

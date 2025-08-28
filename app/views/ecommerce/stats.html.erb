@@ -1,0 +1,138 @@
+<% content_for :title, "Corte" %>
+<% content_for :head do %>
+  <%= stylesheet_link_tag "stats", media: "all" %>
+<% end %>
+
+<%
+# === Conteo por producto (nombre => cantidad) para la sección compacta ===
+product_counts = Hash.new(0)
+(@orders || []).each do |o|
+  o.order_items.each do |it|
+    name = it.product&.name.presence || "Producto ##{it.product_id}"
+    product_counts[name] += it.quantity.to_i
+  end
+end
+sorted_products = product_counts.sort_by { |(name, qty)| [-qty, name.to_s] }
+
+# Formato de horas en zona local
+fmt = ->(ts) { ts ? ts.in_time_zone("America/Merida").strftime("%H:%M") : "—" }
+
+# Nombre del usuario (soporta ticket público post-logout)
+user_name_for_ticket = @stats_user_name || current_user&.name
+%>
+
+<div class="ticket-page">
+  <div class="ticket no-print-shadow">
+    <!-- Encabezado -->
+    <header class="ticket-header">
+      <div class="brand">CORTE</div>
+      <div class="sub">Gym / Tienda</div>
+      <div class="date"><%= @date_label %></div>
+      <div class="hr perforated"></div>
+    </header>
+
+    <!-- Sesión -->
+    <section class="section">
+      <div class="row">
+        <div class="k">USUARIO</div>
+        <div class="v"><%= user_name_for_ticket || "—" %></div>
+      </div>
+      <div class="row">
+        <div class="k">INICIO SESIÓN</div>
+        <div class="v mono"><%= fmt.call(@session_login_at) %></div>
+      </div>
+      <div class="row">
+        <div class="k">CIERRE SESIÓN</div>
+        <div class="v mono"><%= fmt.call(@session_logout_at) %></div>
+      </div>
+    </section>
+
+    <div class="hr"></div>
+
+    <!-- Totales -->
+    <section class="section">
+      <div class="row">
+        <div class="k">TOTAL VENTAS</div>
+        <div class="v mono">$<%= number_with_precision(@gross_total, precision: 2) %></div>
+      </div>
+      <div class="row">
+        <div class="k">EFECTIVO</div>
+        <div class="v mono">$<%= number_with_precision(@cash_total, precision: 2) %></div>
+      </div>
+      <div class="row">
+        <div class="k">TRANSFERENCIA</div>
+        <div class="v mono">$<%= number_with_precision(@transfer_total, precision: 2) %></div>
+      </div>
+      <div class="row faint">
+        <div class="k">ÓRDENES</div>
+        <div class="v mono"><%= @orders_count %></div>
+      </div>
+      <div class="row faint">
+        <div class="k">TICKET PROM.</div>
+        <div class="v mono">$<%= number_with_precision(@avg_ticket, precision: 2) %></div>
+      </div>
+    </section>
+
+    <div class="hr"></div>
+
+    <!-- Entradas / Clientes -->
+    <section class="section">
+      <div class="row">
+        <div class="k">ENTRADAS</div>
+        <div class="v mono"><%= @visitors_count %></div>
+      </div>
+      <div class="row">
+        <div class="k">CLIENTES NUEVOS</div>
+        <div class="v mono"><%= @registered_count %></div>
+      </div>
+      <div class="row faint">
+        <div class="k">TOTAL PERIODO</div>
+        <div class="v mono"><%= @clients_total %></div>
+      </div>
+    </section>
+
+    <div class="hr perforated"></div>
+
+    <!-- Productos vendidos (compacto) -->
+    <% if sorted_products.any? %>
+      <section class="section">
+        <div class="title">PRODUCTOS VENDIDOS</div>
+        <ul class="list">
+          <% sorted_products.each do |name, qty| %>
+            <li class="row tight">
+              <span class="k item"><%= name %></span>
+              <span class="v mono">x<%= qty %></span>
+            </li>
+          <% end %>
+        </ul>
+      </section>
+
+      <div class="hr"></div>
+    <% end %>
+
+    <!-- Pie -->
+    <footer class="ticket-footer">
+      <div class="small faint">Resumen generado automáticamente.</div>
+    </footer>
+  </div>
+
+  <!-- Acciones (pantalla) -->
+  <div class="actions no-print">
+    <%= link_to "← Volver", ecommerce_path, class: "btn btn-light" %>
+
+    <% if current_user&.superuser? %>
+      <%= link_to "Excel (XLSX)",
+                  stats_path(from: (params[:from] || Date.current),
+                             to:   (params[:to]   || Date.current),
+                             format: :xlsx),
+                  class: "btn" %>
+      <%= link_to "Excel (CSV)",
+                  stats_path(from: (params[:from] || Date.current),
+                             to:   (params[:to]   || Date.current),
+                             format: :csv),
+                  class: "btn" %>
+    <% end %>
+
+    <button type="button" class="btn btn-primary" onclick="window.print()">Imprimir</button>
+  </div>
+</div>

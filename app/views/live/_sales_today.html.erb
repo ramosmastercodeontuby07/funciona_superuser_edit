@@ -1,0 +1,21 @@
+<!-- app/views/live/_sales_today.html.erb -->
+<div class="sales-today-box">
+  <% if @order_items.any? %>
+    <ul class="sales-list">
+      <% @order_items.each do |item| %>
+        <li class="sales-row">
+          <span class="sales-name"><%= item.product&.name || "Producto ##{item.product_id}" %></span>
+          <span class="sales-qty">× <%= item.quantity %></span>
+          <span class="sales-line-total">
+            $<%= number_with_precision(item.price * item.quantity, precision: 2) %>
+          </span>
+        </li>
+      <% end %>
+    </ul>
+    <div class="sales-total">
+      Total hoy: <strong>$<%= number_with_precision(@total, precision: 2) %></strong>
+    </div>
+  <% else %>
+    <p class="text-muted">Sin ventas registradas hoy.</p>
+  <% end %>
+</div>

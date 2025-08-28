@@ -1,0 +1,177 @@
+/* ===== Ticket minimalista, alto contraste, print-friendly ===== */
+
+:root{
+  --bg: #ffffff;
+  --ink: #0f172a;             /* slate-900 */
+  --ink-soft: #475569;        /* slate-600 */
+  --line: #0b1221;            /* línea fuerte */
+  --line-soft: #e5e7eb;       /* gray-200 */
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+  font-size: 16px;
+  line-height: 1.35;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.mono {
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: 0.02em;
+}
+
+.no-print { display: block; }
+.no-print-shadow { box-shadow: 0 8px 32px rgba(0,0,0,.08); }
+@media print {
+  .no-print, .no-print * { display: none !important; }
+  .no-print-shadow { box-shadow: none !important; }
+  @page { margin: 8mm; }
+}
+
+/* Página */
+.ticket-page {
+  max-width: 100%;
+  padding: 16px;
+  display: grid;
+  gap: 16px;
+  place-items: center;
+}
+
+/* Ticket */
+.ticket {
+  width: 380px;               /* ancho tipo ticket */
+  background: #fff;
+  color: var(--ink);
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 14px 10px;
+}
+
+.ticket-header .brand {
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: .08em;
+  text-align: center;
+}
+.ticket-header .sub {
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 12px;
+  margin-top: 2px;
+}
+.ticket-header .date {
+  text-align: center;
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+.section {
+  margin-top: 10px;
+}
+.title {
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: .06em;
+  margin-bottom: 6px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: baseline;
+  padding: 6px 0;
+}
+.row.tight { padding: 4px 0; }
+
+.k {
+  font-size: 13px;
+}
+.k.item {
+  font-size: 12.5px;
+  color: var(--ink); /* legible */
+}
+
+.v {
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.faint .k, .faint .v, .small.faint {
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+.small { font-size: 12px; }
+
+.hr {
+  height: 1px;
+  background: var(--line);
+  margin: 8px 0;
+}
+.perforated {
+  background: repeating-linear-gradient(
+    to right,
+    var(--line) 0 8px,
+    transparent 8px 14px
+  );
+  height: 2px;
+  opacity: .9;
+}
+
+/* Lista compacta (productos) */
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px dashed var(--line-soft);
+}
+.list .row {
+  border-bottom: 1px dashed var(--line-soft);
+}
+
+/* Acciones */
+.actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding: 4px 0 12px;
+}
+.btn {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  padding: 8px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 14px;
+  cursor: pointer;
+}
+.btn:hover { background: #f8fafc; }
+.btn-light {
+  border-color: var(--line-soft);
+}
+.btn-primary {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}
+
+/* Inputs de filtro (si se usan en otro layout) */
+.sb-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.sb-input {
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 14px;
+}
+.sb-dash { padding: 0 2px; }

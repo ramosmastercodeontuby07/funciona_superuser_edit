@@ -1,0 +1,60 @@
+<%= form_with(model: @user, local: true, html: { multipart: true, class: 'max-w-xl mx-auto p-6 bg-white shadow rounded-lg' }) do |f| %>
+    <h2 class="text-2xl font-bold mb-4">Inscribir Usuario</h2>
+  
+    <!-- Campos básicos -->
+    <div class="mb-4">
+      <%= f.label :nombre, class: 'block text-sm' %>
+      <%= f.text_field :nombre, class: 'mt-1 w-full border rounded' %>
+    </div>
+    <div class="mb-4">
+      <%= f.label :email, class: 'block text-sm' %>
+      <%= f.email_field :email, class: 'mt-1 w-full border rounded' %>
+    </div>
+  
+    <!-- Webcam / Upload -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <!-- Captura por webcam -->
+      <div>
+        <h3 class="font-semibold mb-2">Capturar Foto</h3>
+        <video id="video" autoplay class="w-full h-48 bg-gray-100 rounded"></video>
+        <canvas id="canvas" class="hidden"></canvas>
+        <button type="button" id="capture-btn" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded">
+          Capturar
+        </button>
+      </div>
+      <!-- Subida de archivo -->
+      <div>
+        <h3 class="font-semibold mb-2">Subir Foto</h3>
+        <%= f.file_field :photo_upload, accept: 'image/*', class: 'block w-full' %>
+      </div>
+    </div>
+  
+    <!-- Campo oculto para base64 -->
+    <%= hidden_field_tag :photo_data, nil, id: 'photo-data' %>
+  
+    <div class="flex justify-end">
+      <%= f.submit "Registrar", class: 'px-6 py-2 bg-green-600 text-white rounded' %>
+    </div>
+  <% end %>
+  
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const btn    = document.getElementById('capture-btn');
+    const input  = document.getElementById('photo-data');
+  
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => video.srcObject = stream)
+      .catch(err => console.error(err));
+  
+    btn.addEventListener('click', () => {
+      canvas.width  = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      input.value = canvas.toDataURL('image/png');
+      alert('Foto capturada.');
+    });
+  });
+  </script>
+  

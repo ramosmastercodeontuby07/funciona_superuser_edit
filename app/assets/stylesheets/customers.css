@@ -1,0 +1,387 @@
+/* app/assets/stylesheets/customers.css */
+
+/* ==========
+   Full Screen Layout
+   ========== */
+   html, body {
+    height: 100%;
+  }
+  
+  .customers-page {
+    --bg: #0f172a;            /* slate-900 */
+    --panel: #363636;
+    --muted: #6b7280;         /* gray-500 */
+    --text: #111827;          /* gray-900 */
+    --primary: #e53e3e;       /* red-600 */
+    --primary-600: #c53030;   /* red-700 */
+    --ring: rgba(229, 62, 62, 0.3);
+    --border: #e5e7eb;        /* gray-200 */
+    --shadow: 0 10px 25px rgba(0,0,0,.18), 0 6px 12px rgba(0,0,0,.12);
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(229,62,62,.12), transparent 70%),
+      radial-gradient(1000px 500px at 110% 0%, rgba(255,255,255,.08), transparent 60%),
+      var(--bg);
+    height: 100vh;         /* ocupa toda la pantalla */
+    min-height: 100vh;
+    overflow: hidden;      /* evita scroll del body; el scroll irá dentro de la tabla */
+    color: var(--text);
+    display: block;
+  }
+  
+  /* ==========
+     Fullscreen box (sin bordes ni sombras)
+     ========== */
+  .customers-box {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;                 /* sin márgenes: pegado a los bordes */
+    background: var(--panel);
+    border: none;              /* sin borde de tarjeta */
+    border-radius: 0;          /* sin radios: pantalla completa */
+    box-shadow: none;          /* sin sombra de tarjeta */
+    display: grid;
+    grid-template-rows: auto auto auto 1fr; /* header, search, summary, tabla (flexible) */
+  }
+  
+  /* ==========
+     Header
+     ========== */
+  .customers-header {
+    padding: 20px 24px 8px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(229,62,62,.06), transparent);
+  }
+  .customers-header h1 {
+    font-size: clamp(1.25rem, 1.2rem + 1vw, 1.9rem);
+    font-weight: 800;
+    letter-spacing: .2px;
+    color: #1f2937;
+    margin-bottom: 6px;
+  }
+  .muted { color: var(--muted); font-size: .95rem; }
+  
+  /* =====================
+     Search + filter row
+     ===================== */
+  .customers-search {
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: #fff;
+  }
+  .customers-search .search-row {
+    display: grid;
+    grid-template-columns: 180px 1fr auto auto auto;
+    gap: 10px;
+    align-items: center;
+  }
+  .filter-select,
+  .search-input {
+    appearance: none;
+    border: 1px solid var(--border);
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 0.95rem;
+    line-height: 1.25rem;
+    transition: box-shadow .15s ease, border-color .15s ease, transform .06s ease;
+  }
+  .filter-select:focus,
+  .search-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px var(--ring);
+  }
+  .filter-select:hover,
+  .search-input:hover { transform: translateY(-1px); }
+  .tips { margin-top: 6px; font-size: .85rem; }
+  
+  /* =======
+     Buttons
+     ======= */
+  .customers-page .form-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid #000; /* coherente con tu estilo global */
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform .08s ease, filter .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
+    user-select: none;
+    white-space: nowrap;
+  }
+  .customers-page .small-btn { font-size: .9rem; }
+  .customers-page .form-button:not(.outline):not(.ghost) {
+    background: #2d3748; color: #fff;
+  }
+  .customers-page .form-button:not(.outline):not(.ghost):hover {
+    background: #1a202c; transform: translateY(-1px);
+  }
+  .customers-page .form-button.outline {
+    background: transparent; color: #1f2937; border-color: var(--border);
+  }
+  .customers-page .form-button.outline:hover {
+    border-color: var(--primary); color: var(--primary); transform: translateY(-1px);
+  }
+  .customers-page .form-button.ghost {
+    background: transparent; color: var(--primary); border-color: transparent;
+  }
+  .customers-page .form-button.ghost:hover { color: var(--primary-600); text-decoration: underline; }
+  
+  /* =========
+     Summary
+     ========= */
+  .customers-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 24px;
+    background: linear-gradient(90deg, rgba(229,62,62,.06), transparent);
+    border-bottom: 1px solid var(--border);
+    font-size: .98rem;
+  }
+  
+  /* =========
+     Table (área scrollable)
+     ========= */
+  .customers-table {
+    /* fila flexible (1fr) del grid padre; hacemos scroll aquí */
+    overflow: auto;
+    background: #fff;
+  }
+  .customers-table table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 720px; /* evita que se rompa en pantallas chicas */
+  }
+  .customers-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #272626; /* dark header */
+    color: #272626;
+    text-align: left;
+    font-weight: 700;
+    font-size: .92rem;
+    letter-spacing: .3px;
+    padding: 14px 18px;
+    border-bottom: 1px solid #0b1220;
+  }
+  .customers-table tbody td {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: .95rem;
+    color: #1f2937;
+  }
+  .customers-table tbody tr:nth-child(odd) td { background: #fafafa; }
+  .customers-table tbody tr:hover td { background: #fff7f7; }
+  .customers-table .empty {
+    text-align: center; color: var(--muted);
+    padding: 28px 14px; font-style: italic;
+  }
+  
+  /* Redondeo visual bordes (no se ven al ser fullscreen, pero mantiene estética) */
+  .customers-table thead th:first-child { border-top-left-radius: 12px; }
+  .customers-table thead th:last-child  { border-top-right-radius: 12px; }
+  .customers-table tbody tr:last-child td:first-child { border-bottom-left-radius: 12px; }
+  .customers-table tbody tr:last-child td:last-child  { border-bottom-right-radius: 12px; }
+  
+  /* =========
+     Utilities
+     ========= */
+  .sr-only {
+    position: absolute !important;
+    height: 1px; width: 1px;
+    overflow: hidden;
+    clip: rect(1px, 1px, 1px, 1px);
+    white-space: nowrap;
+  }
+  
+  /* =========
+     Responsive
+     ========= */
+  @media (max-width: 1024px) {
+    .customers-search .search-row {
+      grid-template-columns: 160px 1fr auto auto;
+      grid-auto-rows: auto;
+    }
+  }
+  
+  @media (max-width: 820px) {
+    .customers-search .search-row { grid-template-columns: 1fr; }
+    .filter-select, .search-input { width: 100%; }
+    .customers-page .form-button { width: 100%; }
+    .customers-header { padding: 16px 18px 6px; }
+    .customers-search { padding: 12px 18px; }
+    .customers-summary { padding: 10px 18px; }
+    .customers-table thead th,
+    .customers-table tbody td { padding: 12px 14px; }
+  }
+  
+  /* =========
+     Focus ring accesible
+     ========= */
+  .customers-page a:focus,
+  .customers-page button:focus,
+  .customers-page select:focus,
+  .customers-page input:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px var(--ring);
+    border-color: var(--primary);
+  }
+/* app/assets/stylesheets/customers.css */
+
+/* Paleta */
+:root {
+  --row: rgba(255, 255, 255, 0.65);   /* blanco translúcido para filas */
+  --row-hover: rgba(255, 255, 255, 0.82);
+  --line: rgba(0, 0, 0, 0.12);        /* bordes suaves */
+  --text: #111111;                    /* texto negro */
+}
+
+/* ====== Layout con scroll ====== */
+.customers-wrap { width: 100%; margin: 0; padding: 0; }
+
+.customers-card {
+  width: 100%;
+  height: 100vh;                 /* pantalla completa */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;              /* el scroll va en la tabla, no aquí */
+}
+
+/* Encabezado (buscador + acciones) arriba */
+.topbar {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* Cuerpo con scroll interno */
+.customers-body {
+  flex: 1;                       /* ocupa lo que queda */
+  overflow: hidden;              /* contenedor del scroll */
+  padding: 0 12px 12px;
+}
+
+/* El scroll real */
+.list-scroll {
+  height: 100%;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--row);
+  -webkit-overflow-scrolling: touch; /* suave en móviles */
+}
+
+/* ====== Tipografía ====== */
+.customers-card,
+.customers-card * {
+  color: var(--text) !important; /* letras negras en toda la sección */
+}
+
+/* ====== Tabla ====== */
+.customers-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+
+/* Encabezado fijo (sticky) y mismo color que filas */
+.customers-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--row) !important; /* sin bicolor */
+  color: var(--text) !important;
+  border-bottom: 1px solid var(--line) !important;
+}
+
+/* Celdas */
+.customers-table th,
+.customers-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 10px 12px;
+  white-space: nowrap;
+}
+
+/* Filas todas iguales (anula zebra/alternado de cualquier framework) */
+.customers-table tbody tr,
+.customers-table tbody tr:nth-child(odd),
+.customers-table tbody tr:nth-child(even),
+table.table-striped tbody tr:nth-child(odd),
+table.table-striped tbody tr:nth-child(even) {
+  background: var(--row) !important;
+}
+
+/* Hover sutil */
+.customers-table tbody tr:hover {
+  background: var(--row-hover) !important;
+}
+
+/* Enlaces coherentes con el texto */
+.customers-table a { color: var(--text) !important; text-decoration: none; }
+.customers-table a:hover { text-decoration: underline; }
+
+/* Inputs/Select del buscador */
+.filters select,
+.filters input[type="text"],
+.filters input[type="month"] {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--text);
+  outline: none;
+}
+
+/* Avatar de fallback */
+.avatar-sm {
+  height: 44px; width: 44px; object-fit: cover; border-radius: 8px;
+  background: rgba(0,0,0,0.08);
+  display: block;
+}
+/* === Solo letras en negro (override final) === */
+.customers-card,
+.customers-card * {
+  color: #111111 !important; /* texto negro */
+}
+
+.customers-table a {
+  color: #111111 !important; /* enlaces negros también */
+}
+/* === Texto negro en toda la sección === */
+.customers-card,
+.customers-card * {
+  color: #111111 !important;
+}
+
+/* === Encabezados en blanco === */
+/* Encabezado de la tabla (nombres de columnas) */
+.customers-table thead th {
+  color: #ffffff !important;
+}
+
+/* Encabezado superior (título y botones) */
+.topbar .title,
+.topbar .btn,
+.topbar label {
+  color: #ffffff !important;
+}
+
+/* Mantén los campos del buscador legibles (texto negro dentro de inputs) */
+.filters select,
+.filters input[type="text"],
+.filters input[type="month"] {
+  color: #111111 !important;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.cf-alert{
+  background:#fff7ed; border:1px solid #fdba74; color:#9a3412;
+  padding:10px 12px; border-radius:10px; margin-bottom:12px; font-size:14px;
+}
+.cf-errors{
+  background:#fef2f2; border:1px solid #fecaca; color:#7f1d1d;
+  padding:10px 12px; border-radius:10px; margin-bottom:12px;
+}
+.cf-errors-title{ font-weight:800; margin-bottom:6px; font-size:14px; }
+.cf-errors-list{ margin:0; padding-left:16px; font-size:13px; }

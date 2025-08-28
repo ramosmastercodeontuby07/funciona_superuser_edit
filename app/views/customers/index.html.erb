@@ -1,0 +1,131 @@
+<!-- app/views/customers/index.html.erb -->
+
+<%= stylesheet_link_tag 'customers_index', media: 'all' %>
+
+<div class="customers-wrap">
+  <div class="customers-card">
+
+    <!-- Encabezado con acciones y buscador -->
+    <div class="topbar">
+      <div class="title-actions">
+        <div class="title">Clientes</div>
+        <%= link_to "Inicio", ecommerce_path, class: "btn btn-dark" %>
+        <%= link_to "Registrar Cliente", new_customer_path, class: "btn" %>
+      </div>
+
+      <%= form_with url: customers_path, method: :get, local: true, class: "filters" do |f| %>
+        <% selected = params[:filter].presence || 'name' %>
+        <label for="filter">Buscar por</label>
+
+        <%= select_tag :filter,
+              options_for_select([['Nombre','name'],['Número','number'],['Mes','month']], selected),
+              include_blank: false, id: "filter" %>
+
+        <% if selected == 'month' %>
+          <%= month_field_tag :q, params[:q], id: "q-field" %>
+        <% else %>
+          <%= text_field_tag :q, params[:q], id: "q-field", placeholder: (selected == 'number' ? 'Ej. 123' : 'Buscar…') %>
+        <% end %>
+
+        <%= submit_tag "Buscar", class: "btn" %>
+        <%= link_to "Limpiar", customers_path, class: "btn" %>
+      <% end %>
+    </div>
+
+    <!-- Tabla -->
+    <div class="customers-body">
+      <div class="list-scroll">
+        <table class="customers-table">
+          <thead>
+            <tr>
+              <th>Foto</th>
+              <th># Cliente</th>
+              <th>Nombre</th>
+              <th>Plan</th>
+              <th>Inscripción</th>
+              <th>Próximo pago</th>
+              <th style="min-width: 260px;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @customers.each do |c| %>
+              <tr tabindex="0">
+                <td>
+                  <% if c.photo&.attached? %>
+                    <%= image_tag c.photo.variant(resize_to_limit: [80,80]),
+                                  class: "avatar-sm", alt: c.name %>
+                  <% else %>
+                    <span class="muted">—</span>
+                  <% end %>
+                </td>
+                <td><strong><%= c.client_number %></strong></td>
+                <td><%= c.name %></td>
+                <td><%= c.plan.to_s.titleize %></td>
+                <td><%= c.enrollment_date&.strftime('%d %b %Y') %></td>
+                <td><%= c.next_payment_date&.strftime('%d %b %Y') %></td>
+
+                <td class="space-x-2">
+                  <!-- Ver: disponible para todos -->
+                  <%= link_to "Ver", customer_path(c), class: "btn btn-sm" %>
+
+                  <!-- Historial de membresías del cliente -->
+                  <%= link_to "Membresías", customer_memberships_path(c), class: "btn btn-sm" %>
+
+                  <% if current_user.superuser? %>
+                    <%= link_to "Editar", edit_customer_path(c), class: "btn btn-sm" %>
+                    <%= link_to "Eliminar",
+                                customer_path(c),
+                                data: { turbo_method: :delete, turbo_confirm: "¿Eliminar a #{c.name} (# #{c.client_number})?" },
+                                class: "btn btn-sm btn-danger" %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Cambia el campo de búsqueda según filtro seleccionado (texto/mes)
+  document.addEventListener('DOMContentLoaded', () => {
+    const filter = document.getElementById('filter');
+    filter?.addEventListener('change', () => {
+      const form = filter.closest('form');
+      const selected = filter.value;
+      const qOld = document.getElementById('q-field');
+      const qVal = qOld ? qOld.value : '';
+
+      if (!form || !qOld) return;
+
+      let newField;
+      if (selected === 'month') {
+        newField = document.createElement('input');
+        newField.type = 'month';
+        newField.name = 'q';
+        newField.id   = 'q-field';
+        newField.value = qVal;
+      } else {
+        newField = document.createElement('input');
+        newField.type = 'text';
+        newField.name = 'q';
+        newField.id   = 'q-field';
+        newField.placeholder = (selected === 'number') ? 'Ej. 123' : 'Buscar…';
+        newField.value = qVal;
+      }
+      qOld.replaceWith(newField);
+    });
+
+    // Selección de fila visual
+    document.addEventListener('click', (e) => {
+      const row = e.target.closest('.customers-table tbody tr');
+      if (!row) return;
+      document.querySelectorAll('.customers-table tbody tr.is-selected')
+              .forEach(r => r.classList.remove('is-selected'));
+      row.classList.add('is-selected');
+    });
+  });
+</script>

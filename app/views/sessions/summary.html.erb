@@ -1,0 +1,35 @@
+<!-- app/views/sessions/summary.html.erb -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Resumen de Sesión</title>
+  <%= stylesheet_link_tag 'application', media: 'all' %>
+</head>
+<body class="summary-page">
+  <div class="summary-container">
+    <h1>Resumen de tu sesión</h1>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Hora</th>
+          <th>Acción</th>
+          <th>Detalles</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @session_activities.each do |act| %>
+          <tr>
+            <td><%= act.created_at.in_time_zone('America/Merida').strftime('%H:%M:%S') %></td>
+            <td><%= act.action.titleize %></td>
+            <td><%= act.details %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <%= link_to 'Volver al Login', login_path, class: 'form-button' %>
+  </div>
+</body>
+</html>

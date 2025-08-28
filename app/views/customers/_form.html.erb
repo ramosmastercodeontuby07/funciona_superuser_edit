@@ -1,0 +1,71 @@
+<!-- app/views/customers/_form.html.erb -->
+<%= form_with model: customer, local: true, html: { id: "customer-form" } do |f| %>
+  <% if customer.errors.any? %>
+    <div class="alert alert-danger mb-4">
+      <p><strong><%= pluralize(customer.errors.count, "error") %>:</strong></p>
+      <ul class="list-disc pl-6">
+        <% customer.errors.full_messages.each do |m| %>
+          <li><%= m %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <%= f.label :name, "Nombre" %>
+      <%= f.text_field :name, class: "input", required: true %>
+    </div>
+
+    <div>
+      <%= f.label :client_number, "Número de cliente" %>
+      <%= f.number_field :client_number,
+                         value: (customer.client_number || Customer.next_client_number),
+                         class: "input",
+                         readonly: true,
+                         min: 1 %>
+      <small>Se asigna automáticamente (puedes cambiarlo si lo necesitas).</small>
+    </div>
+
+    <div>
+      <%= f.label :enrollment_date, "Fecha de inscripción" %>
+      <%= f.date_field :enrollment_date,
+                       value: (customer.enrollment_date || Date.current),
+                       class: "input" %>
+    </div>
+
+    <div>
+      <%= f.label :plan, "Plan" %>
+      <%= f.text_field :plan, class: "input", placeholder: "mensual / anual / etc." %>
+    </div>
+
+    <div>
+      <%= f.label :phone, "Teléfono" %>
+      <%= f.telephone_field :phone, class: "input" %>
+    </div>
+
+    <div>
+      <%= f.label :email, "Email" %>
+      <%= f.email_field :email, class: "input" %>
+    </div>
+  </div>
+
+  <div class="mt-6">
+    <%= f.submit "Registrar", class: "btn btn-dark" %>
+  </div>
+<% end %>
+
+<style>
+  /* Pequeño refuerzo visual si no usas utilidades */
+  #customer-form .grid { gap: 16px; }
+  #customer-form label { font-weight: 600; }
+  #customer-form .input, #customer-form input[type="text"], #customer-form input[type="number"], #customer-form input[type="email"], #customer-form input[type="tel"], #customer-form select {
+    width: 100%;
+    border: 1px solid rgba(0,0,0,.15);
+    border-radius: 10px;
+    padding: 10px 12px;
+    background: #fff;
+    color: #111;
+  }
+  .mt-6 { margin-top: 22px; }
+</style>

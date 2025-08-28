@@ -1,0 +1,112 @@
+<!-- app/views/customers/edit.html.erb -->
+<style>
+  .minimal-wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; color:#111; }
+  .minimal-card {
+    background: rgba(255,255,255,0.65);
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 20px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 8px 24px rgba(0,0,0,.06);
+    max-height: calc(100vh - 80px);
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+  .minimal-header { padding: 22px 24px 0; text-align:center; }
+  .minimal-title { font-size:22px; font-weight:800; letter-spacing:.2px; }
+  .minimal-actions { display:flex; justify-content:center; gap:10px; padding:10px 24px; flex-wrap:wrap; }
+  .btn { display:inline-flex; align-items:center; gap:6px; padding:10px 14px; border-radius:12px; border:1px solid rgba(0,0,0,.12); background:#fff; color:#111; text-decoration:none; }
+  .btn:hover { background:#f8f8f8; }
+  .btn-dark { background:#111; color:#fff; border-color:#111; }
+  .minimal-body { padding:24px; overflow:auto; }
+
+  .form-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:16px; }
+  .form-field { display:flex; flex-direction:column; gap:6px; }
+  .text-input, .upload-input, .submit-button {
+    border: 1px solid rgba(0,0,0,.15); border-radius:10px; padding:10px 12px; background:#fff; color:#111;
+  }
+  .submit-button { cursor:pointer; }
+  .preview { display:flex; align-items:center; gap:12px; }
+  .avatar-preview { width:100px; height:100px; object-fit:cover; border-radius:10px; background:#eee; }
+  @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="minimal-wrap">
+  <div class="minimal-card">
+    <div class="minimal-header">
+      <div class="minimal-title">Editar Cliente #<%= @customer.client_number %></div>
+    </div>
+
+    <div class="minimal-actions">
+      <%= link_to 'Inicio', ecommerce_path, class: 'btn btn-dark' %>
+      <%= link_to 'Clientes', customers_path, class: 'btn' %>
+    </div>
+
+    <div class="minimal-body">
+      <%= form_with model: @customer, local: true, html: { multipart: true } do |f| %>
+        <% if @customer.errors.any? %>
+          <div class="alert alert-danger mb-4">
+            <strong><%= pluralize(@customer.errors.count, "error") %>:</strong>
+            <ul class="list-disc pl-6">
+              <% @customer.errors.full_messages.each do |m| %>
+                <li><%= m %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <%= f.label :name, 'Nombre Completo' %>
+            <%= f.text_field :name, required: true, class: 'text-input' %>
+          </div>
+
+          <div class="form-field">
+            <%= f.label :client_number, 'Número de Cliente' %>
+            <%= f.number_field :client_number, class: 'text-input', min: 1, required: true %>
+            <small>Puedes ajustarlo si fuese necesario.</small>
+          </div>
+
+          <div class="form-field">
+            <%= f.label :search_number, 'Número de Búsqueda' %>
+            <%= f.text_field :search_number, required: true, class: 'text-input' %>
+          </div>
+
+          <div class="form-field">
+            <%= f.label :plan, 'Plan' %>
+            <%= f.select :plan,
+                options_for_select([['Día – $30','dia'], ['Semana – $120','semana'], ['Mes – $250','mes']], @customer.plan),
+                { prompt: 'Selecciona un plan' },
+                required: true,
+                class: 'text-input' %>
+          </div>
+
+          <div class="form-field">
+            <%= f.label :enrollment_date, 'Fecha de Inscripción' %>
+            <%= f.date_field :enrollment_date, required: true, class: 'text-input' %>
+          </div>
+
+          <div class="form-field">
+            <%= f.label :next_payment_date, 'Próximo Pago' %>
+            <%= f.date_field :next_payment_date, required: true, class: 'text-input' %>
+          </div>
+
+          <div class="form-field" style="grid-column: 1 / -1;">
+            <%= f.label :photo, 'Actualizar foto' %>
+            <div class="preview">
+              <% if @customer.photo&.attached? %>
+                <%= image_tag @customer.photo.variant(resize_to_limit: [300,300]), class: "avatar-preview" %>
+              <% else %>
+                <div class="avatar-preview"></div>
+              <% end %>
+              <%= f.file_field :photo, accept: 'image/*', class: 'upload-input' %>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:22px;">
+          <%= f.submit 'Actualizar Cliente', class: 'submit-button' %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

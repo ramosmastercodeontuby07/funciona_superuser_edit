@@ -1,0 +1,54 @@
+/* Compact mode toggles */
+.customers-wrap.compact,
+.customers-card.compact,
+.customers-body.compact,
+.list-scroll.compact { font-size: 12px; }
+
+.title-actions .title { font-size: 16px; font-weight: 700; }
+
+/* Botones compactos */
+.btn { padding: 6px 10px; font-size: 12px; line-height: 1; border-radius: 6px; }
+.btn-xs { padding: 4px 8px; font-size: 12px; }
+.btn-xxs { padding: 3px 6px; font-size: 11px; }
+.btn-dark { background:#222; color:#fff; }
+.btn-danger { background:#c0392b; color:#fff; }
+
+/* Inputs compactos */
+.inp, .sel, .lbl {
+  font-size: 12px; line-height: 1.2;
+}
+.inp-xs, .sel-xs { height: 28px; padding: 3px 6px; }
+
+/* Topbar en una sola línea, sin apilar (si falta espacio, hace scroll horizontal) */
+.no-wrap {
+  display: flex; align-items: center; gap: 8px;
+  white-space: nowrap; overflow-x: auto; overflow-y: hidden;
+}
+.topbar { justify-content: space-between; padding: 8px; }
+.title-actions { display:flex; align-items:center; gap:10px; }
+.actions-row { display:flex; align-items:center; gap:6px; }
+
+/* Filtros compactos */
+.filters-compact { display:flex; align-items:center; gap:6px; }
+
+/* Tabla compacta */
+.customers-table.compact { width:100%; border-collapse: separate; border-spacing: 0; }
+.customers-table.compact th,
+.customers-table.compact td { padding: 6px 8px; font-size: 12px; vertical-align: middle; }
+.customers-table.compact thead th { font-weight: 700; border-bottom: 1px solid #eee; }
+.customers-table.compact tbody tr:hover { background: #fafafa; }
+.customers-table.compact tbody tr.is-selected { background: #ffecec; }
+
+/* Foto pequeña */
+.avatar-xs { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; }
+.td-avatar { width: 64px; }
+
+/* Acciones en una línea, sin wrap */
+.th-actions, .td-actions { white-space: nowrap; }
+.td-actions .btn { display:inline-flex; align-items:center; }
+
+/* Scroll body si hay muchas filas */
+.list-scroll { max-height: calc(100vh - 240px); overflow:auto; }
+
+/* Muted */
+.muted { color:#999; }

@@ -1,0 +1,37 @@
+<!-- app/views/payments/index.html.erb -->
+<div class="panel shop-panel">
+  <h2>Ventas Registradas</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Cliente</th>
+        <th>Plan</th>
+        <th>Edad</th>
+        <th>Peso</th>
+        <th>Foto</th>
+        <th>Registrado el</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @payments.each do |p| %>
+        <tr>
+          <td><%= p.customer.name %></td>
+          <td><%= p.plan_type.titleize %></td>
+          <td><%= p.age.presence || '-' %></td>
+          <td><%= p.weight.presence || '-' %></td>
+          <td>
+            <% if p.photo.attached? %>
+              <%= image_tag p.photo.variant(resize_to_limit:[60,60]).processed,
+                            alt: p.customer.name %>
+            <% end %>
+          </td>
+          <td><%= l(p.created_at, format: :short) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <%= link_to '← Registrar Nueva Venta', new_payment_path,
+              class: 'form-button small-btn mt-4' %>
+</div>

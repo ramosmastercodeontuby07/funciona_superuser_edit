@@ -1,0 +1,55 @@
+<%= stylesheet_link_tag 'customers_index', media: 'all' %>
+
+<div class="customers-wrap">
+  <div class="customers-card">
+    <div class="topbar">
+      <div class="title-actions">
+        <div class="title">Historial de membresías — <%= @customer.name %></div>
+        <%= link_to "← Volver a clientes", customers_path, class: "btn" %>
+      </div>
+    </div>
+
+    <div class="customers-body">
+      <div class="list-scroll">
+        <table class="customers-table">
+          <thead>
+            <tr>
+              <th>Plan</th>
+              <th>Inicio</th>
+              <th>Fin</th>
+              <th>Monto</th>
+              <th>Método</th>
+              <th>Estado</th>
+              <th>Orden</th>
+              <th>Creado por</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @memberships.each do |m| %>
+              <tr>
+                <td><%= m.plan_label %></td>
+                <td><%= m.started_on.strftime('%d %b %Y') %></td>
+                <td><%= m.ends_on.strftime('%d %b %Y') %></td>
+                <td>$<%= sprintf('%.2f', m.amount.to_f) %></td>
+                <td><%= m.payment_method.to_s.titleize %></td>
+                <td>
+                  <% if m.paid? %>
+                    <span class="badge badge-ok">Pagado</span>
+                  <% else %>
+                    <span class="badge badge-warn">Pendiente</span>
+                  <% end %>
+                </td>
+                <td><%= m.order_id ? "##{m.order_id}" : '—' %></td>
+                <td><%= m.user&.name || '—' %></td>
+              </tr>
+            <% end %>
+            <% if @memberships.blank? %>
+              <tr><td colspan="8" class="muted">Sin registros.</td></tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,93 @@
+<!-- app/views/backoffice/products/_form.html.erb -->
+<%= form_with model: [:backoffice, product], local: true, html: { multipart: true, id: "product-form" } do |f| %>
+  <% if product.errors.any? %>
+    <div class="alert alert-danger mb-4">
+      <p><strong><%= pluralize(product.errors.count, "error") %>:</strong></p>
+      <ul class="list-disc pl-6">
+        <% product.errors.full_messages.each do |m| %>
+          <li><%= m %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <%= f.label :name, "Nombre" %>
+      <%= f.text_field :name, class: "input", required: true %>
+    </div>
+
+    <div>
+      <%= f.label :product_section, "Sección" %>
+      <%= f.select :product_section,
+                   options_for_select(
+                     [
+                       ["Bebidas",     Product::PRODUCT_SECTIONS[:bebidas]],
+                       ["Suplementos", Product::PRODUCT_SECTIONS[:suplementos]]
+                     ],
+                     (product.product_section || Product::PRODUCT_SECTIONS[:suplementos])
+                   ),
+                   {}, class: "input" %>
+    </div>
+
+    <div>
+      <%= f.label :price, "Precio (venta)" %>
+      <%= f.number_field :price, step: 0.01, min: 0, class: "input", required: true, id: "price_field" %>
+    </div>
+
+    <div>
+      <%= f.label :cost, "Me costó" %>
+      <%= f.number_field :cost, step: 0.01, min: 0, class: "input", required: true, id: "cost_field" %>
+    </div>
+
+    <div>
+      <%= f.label :stock, "Stock" %>
+      <%= f.number_field :stock, step: 1, min: 0, class: "input", required: true %>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <%= f.label :active, "Activo (visible en tienda)" %>
+      <%= f.check_box :active %>
+    </div>
+
+    <div class="md:col-span-2">
+      <%= f.label :image, "Imagen" %>
+      <%= f.file_field :image, accept: "image/*", class: "input" %>
+
+      <% if product.image.attached? %>
+        <div class="mt-2">
+          <%= image_tag product.image.variant(resize_to_limit: [200, 200]), alt: product.name %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Utilidad por unidad -->
+  <div class="mt-6 p-4 rounded-md border bg-gray-50">
+    <strong>Utilidad por unidad:</strong>
+    <span id="profit_value">
+      $<%= number_with_precision(product.profit_per_unit, precision: 2) rescue "0.00" %>
+    </span>
+  </div>
+
+  <div class="mt-6">
+    <%= f.submit class: "btn btn-primary" %>
+  </div>
+<% end %>
+
+<script>
+  (function() {
+    function toNum(v){ var n = parseFloat(v); return isNaN(n) ? 0 : n; }
+    function recalc(){
+      var price = toNum(document.getElementById('price_field')?.value);
+      var cost  = toNum(document.getElementById('cost_field')?.value);
+      var profit = (price - cost).toFixed(2);
+      var el = document.getElementById('profit_value');
+      if(el){ el.textContent = '$' + profit; }
+    }
+    document.addEventListener('input', function(e){
+      if (e.target && (e.target.id === 'price_field' || e.target.id === 'cost_field')) { recalc(); }
+    });
+    document.addEventListener('DOMContentLoaded', recalc);
+  })();
+</script>

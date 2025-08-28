@@ -1,0 +1,31 @@
+<!-- app/views/products/edit.html.erb -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <%= csrf_meta_tags %>
+  <title>Editar Stock - <%= @product.name %></title>
+  <%= stylesheet_link_tag 'application', media: 'all' %>
+</head>
+<body class="edit-product-page">
+  <div class="edit-container">
+    <h1>Editar Stock de “<%= @product.name %>”</h1>
+
+    <% if flash[:alert] %>
+      <p class="alert"><%= flash[:alert] %></p>
+    <% end %>
+
+    <%= form_with model: @product, local: true do |f| %>
+      <div class="form-field">
+        <%= f.label :stock, "Stock actual:" %>
+        <%= f.number_field :stock, min: 0, required: true, class: "form-input" %>
+      </div>
+
+      <div class="form-actions">
+        <%= f.submit "Guardar Cambios", class: "form-button" %>
+        <%= link_to "Cancelar", ecommerce_path, class: "form-button secondary-btn" %>
+      </div>
+    <% end %>
+  </div>
+</body>
+</html>

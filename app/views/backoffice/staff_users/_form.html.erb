@@ -1,0 +1,79 @@
+<%= form_with model: user,
+              url: (user.persisted? ? backoffice_staff_user_path(user) : backoffice_staff_users_path),
+              method: (user.persisted? ? :patch : :post),
+              local: true,
+              html: { multipart: true, id: "staff-user-form" } do |f| %>
+
+  <% if user.errors.any? %>
+    <div class="alert alert-danger mb-4">
+      <p><strong><%= pluralize(user.errors.count, "error") %>:</strong></p>
+      <ul class="list-disc pl-6">
+        <% user.errors.full_messages.each do |m| %>
+          <li><%= m %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <%= f.label :name, "Nombre (usuario)" %>
+      <%= f.text_field :name, class: "input", required: true, autofocus: true %>
+    </div>
+
+    <div>
+      <%= f.label :photo, "Foto (opcional)" %>
+      <%= f.file_field :photo, accept: "image/*", class: "input" %>
+      <% if user.photo.attached? %>
+        <div class="mt-2">
+          <%= image_tag user.photo.variant(resize_to_limit: [200, 200]), alt: user.name %>
+        </div>
+      <% end %>
+    </div>
+
+    <div>
+      <%= f.label :password, "Contraseña" %>
+      <%= f.password_field :password, class: "input", required: !user.persisted? %>
+      <% if user.persisted? %>
+        <small class="help-text">Déjalo vacío si no deseas cambiarla.</small>
+      <% end %>
+    </div>
+
+    <div>
+      <%= f.label :password_confirmation, "Confirmar contraseña" %>
+      <%= f.password_field :password_confirmation, class: "input" %>
+    </div>
+
+    <div class="md:col-span-2">
+      <label for="user_superuser">¿Es superusuario?</label>
+      <%= check_box_tag "user[superuser]", "1", !!user.superuser?, id: "user_superuser" %>
+      <p class="help-text">Si está marcado, se asignará el rol <code>superuser</code>.</p>
+    </div>
+
+    <div class="md:col-span-2">
+      <%= f.label :secret_code, "Secret code (requerido si es superusuario)" %>
+      <%= f.password_field :secret_code, class: "input", id: "user_secret_code" %>
+    </div>
+  </div>
+
+  <div class="mt-6">
+    <%= f.submit (user.persisted? ? "Actualizar usuario" : "Crear usuario"), class: "btn btn-primary" %>
+  </div>
+<% end %>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const cb = document.getElementById('user_superuser');
+    const sc = document.getElementById('user_secret_code');
+    function toggleSecretCodeRequired() {
+      if (!cb || !sc) return;
+      if (cb.checked) {
+        sc.setAttribute('required', 'required');
+      } else {
+        sc.removeAttribute('required');
+      }
+    }
+    cb?.addEventListener('change', toggleSecretCodeRequired);
+    toggleSecretCodeRequired();
+  });
+</script>

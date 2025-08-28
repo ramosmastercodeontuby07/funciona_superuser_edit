@@ -1,0 +1,256 @@
+<%= form_with(model: @customer, url: customers_path, local: true,
+              html: { multipart: true, class: 'cliente-layout' }) do |f| %>
+
+  <% if flash[:alert].present? %>
+    <div class="cf-alert"><%= flash[:alert] %></div>
+  <% end %>
+
+  <% if @customer && @customer.errors.any? %>
+    <div class="cf-errors">
+      <div class="cf-errors-title">Corrige los siguientes puntos:</div>
+      <ul class="cf-errors-list">
+        <% @customer.errors.full_messages.each do |msg| %>
+          <li>• <%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <!-- Encabezado -->
+  <div class="cf-header">
+    <h1 class="cf-title">Inscribir usuario</h1>
+    <%= link_to "← Cancelar", ecommerce_path, class: "cf-btn-ghost" %>
+  </div>
+
+  <div class="cf-columns">
+    <!-- ===== Columna izquierda ===== -->
+    <div class="cf-main">
+      <!-- Datos básicos -->
+      <div class="cf-card">
+        <div class="cf-section">
+          <div class="cf-field">
+            <%= f.label :name, "Nombre", class: "cf-label" %>
+            <%= f.text_field :name, required: true, autofocus: true, class: "cf-input" %>
+          </div>
+
+          <div class="cf-grid-2">
+            <div class="cf-field">
+              <%= f.label :enrollment_date, "Fecha de inscripción", class: "cf-label" %>
+              <%= f.date_field :enrollment_date, value: (@customer.enrollment_date || Date.current), class: "cf-input" %>
+              <p class="cf-hint">La próxima fecha se calcula según el plan.</p>
+            </div>
+            <div class="cf-field">
+              <%= f.label :client_number, "No. cliente (opcional)", class: "cf-label" %>
+              <%= f.text_field :client_number, value: @customer.client_number, class: "cf-input" %>
+              <p class="cf-hint">Si lo dejas vacío, se asigna automático.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Planes fijos + precio personalizado -->
+      <div class="cf-card">
+        <div class="cf-section">
+          <span class="cf-label">Plan</span>
+          <div class="cf-plans">
+            <label class="cf-plan">
+              <%= f.radio_button :plan, "mes", checked: (@customer.plan.to_s.blank? || @customer.plan.to_s == 'mes'), data: { price: 200 } %>
+              <div class="cf-plan-body">
+                <div class="cf-plan-title">Mensual</div>
+                <div class="cf-plan-price mono">$200</div>
+              </div>
+            </label>
+
+            <label class="cf-plan">
+              <%= f.radio_button :plan, "semana", checked: (@customer.plan.to_s == 'semana'), data: { price: 100 } %>
+              <div class="cf-plan-body">
+                <div class="cf-plan-title">Semanal</div>
+                <div class="cf-plan-price mono">$100</div>
+              </div>
+            </label>
+
+            <label class="cf-plan">
+              <%= f.radio_button :plan, "dia", checked: (@customer.plan.to_s == 'dia'), data: { price: 30 } %>
+              <div class="cf-plan-body">
+                <div class="cf-plan-title">Diario</div>
+                <div class="cf-plan-price mono">$30</div>
+              </div>
+            </label>
+          </div>
+
+          <div class="cf-field" style="margin-top:10px;">
+            <%= label_tag :custom_price, "Precio personalizado (opcional)", class: "cf-label" %>
+            <%= number_field_tag :custom_price, nil, min: 0, step: 1, class: "cf-input", placeholder: "Ingresa un monto para sobrescribir el plan" %>
+            <p class="cf-hint">Si capturas un valor aquí, este monto reemplaza el precio del plan.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Foto -->
+      <div class="cf-card">
+        <div class="cf-section">
+          <div class="cf-grid-2">
+            <!-- Webcam -->
+            <div>
+              <div class="cf-row-between">
+                <span class="cf-label">Capturar foto</span>
+                <div class="cf-gap">
+                  <button type="button" id="open-cam"    class="cf-btn-ghost">Abrir cámara</button>
+                  <button type="button" id="capture-btn" class="cf-btn" disabled>Tomar foto</button>
+                  <button type="button" id="retake-btn"  class="cf-btn-ghost" disabled>Reintentar</button>
+                </div>
+              </div>
+
+              <div class="cf-cam-box">
+                <video id="video" autoplay playsinline class="cf-video" muted></video>
+                <canvas id="canvas" class="cf-canvas" hidden></canvas>
+                <div id="cam-placeholder" class="cf-cam-ph">Cámara apagada</div>
+              </div>
+              <p class="cf-hint">Permite el uso de cámara para capturar la foto del cliente.</p>
+            </div>
+
+            <!-- Upload + Preview -->
+            <div>
+              <span class="cf-label">Subir foto</span>
+              <%= f.file_field :photo_upload, accept: 'image/*', class: 'cf-file', id: 'photo-upload' %>
+              <p class="cf-hint">Opcional si ya capturaste con la cámara.</p>
+
+              <div class="cf-preview">
+                <img id="photo-preview" alt="Preview" class="cf-preview-img" />
+                <div class="cf-preview-ph">Sin foto</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Base64 oculto -->
+      <%= hidden_field_tag :photo_data, nil, id: 'photo-data' %>
+    </div>
+
+    <!-- ===== Columna derecha (resumen + pago) ===== -->
+    <aside class="cf-aside">
+      <div class="cf-card sticky">
+        <div class="cf-section">
+          <div class="cf-summary-title">Resumen</div>
+          <div class="cf-summary-row">
+            <span class="cf-s-k">Plan</span>
+            <span id="sum-plan" class="cf-s-v">Mensual</span>
+          </div>
+          <div class="cf-summary-row">
+            <span class="cf-s-k">A cobrar</span>
+            <span id="sum-price" class="cf-s-v mono">$200.00</span>
+          </div>
+        </div>
+
+        <div class="cf-divider"></div>
+
+        <div class="cf-section">
+          <span class="cf-label">Método de pago</span>
+          <div class="cf-pills">
+            <label class="cf-pill">
+              <%= f.radio_button :payment_method, "efectivo", checked: true %>
+              <span>Efectivo</span>
+            </label>
+            <label class="cf-pill">
+              <%= f.radio_button :payment_method, "transferencia" %>
+              <span>Transferencia</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="cf-section">
+          <%= f.submit "Registrar y cobrar plan", class: "cf-submit-big" %>
+          <%= link_to "Cancelar", ecommerce_path, class: "cf-cancel-link" %>
+        </div>
+      </div>
+    </aside>
+  </div>
+<% end %>
+
+<!-- ===== JS: resumen, cámara y preview ===== -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // --- Resumen dinámico (plan + precio) ---
+  const planRadios  = document.querySelectorAll('input[name="customer[plan]"]');
+  const customPrice = document.getElementById('custom_price') || document.querySelector('input[name="custom_price"]');
+  const sumPlan  = document.getElementById('sum-plan');
+  const sumPrice = document.getElementById('sum-price');
+
+  function money(n){ n = Number(n||0); return n.toLocaleString('es-MX',{style:'currency',currency:'MXN',minimumFractionDigits:2}); }
+  function currentPlan(){
+    const r = Array.from(planRadios).find(r => r.checked);
+    return { key: r?.value || 'mes', label: r?.closest('.cf-plan')?.querySelector('.cf-plan-title')?.textContent || 'Mensual', price: Number(r?.dataset?.price || 0) };
+  }
+  function updateSummary(){
+    const p = currentPlan();
+    sumPlan.textContent = p.label;
+    const cp = Number((customPrice && customPrice.value) || 0);
+    sumPrice.textContent = money(cp>0 ? cp : p.price);
+  }
+  planRadios.forEach(r => r.addEventListener('change', updateSummary));
+  customPrice?.addEventListener('input', updateSummary);
+  updateSummary();
+
+  // --- Upload preview
+  const upload = document.getElementById('photo-upload');
+  const prev   = document.getElementById('photo-preview');
+  const prevPh = document.querySelector('.cf-preview-ph');
+  upload?.addEventListener('change', (e) => {
+    const file = e.target.files?.[0];
+    if (!file) { prev.src=''; prev.style.display='none'; prevPh.style.display='grid'; return; }
+    const fr = new FileReader();
+    fr.onload = () => { prev.src = fr.result; prev.style.display='block'; prevPh.style.display='none'; };
+    fr.readAsDataURL(file);
+  });
+
+  // --- Cámara
+  const openBtn   = document.getElementById('open-cam');
+  const capture   = document.getElementById('capture-btn');
+  const retake    = document.getElementById('retake-btn');
+  const video     = document.getElementById('video');
+  const canvas    = document.getElementById('canvas');
+  const holder    = document.getElementById('cam-placeholder');
+  const inputB64  = document.getElementById('photo-data');
+  let stream = null;
+
+  async function openCamera() {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:'user', width:{ideal:960}, height:{ideal:720} }, audio:false });
+      video.srcObject = stream;
+      holder.style.display = 'none';
+      video.classList.add('on');
+      capture.disabled = false;
+      retake.disabled = true;
+      canvas.hidden = true;
+    } catch (e) {
+      alert('No se pudo abrir la cámara: ' + (e.message || e));
+    }
+  }
+
+  function takeShot() {
+    if (!video.videoWidth) { alert('Esperando la cámara...'); return; }
+    canvas.width  = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+    inputB64.value = canvas.toDataURL('image/jpeg', 0.9);
+    canvas.hidden = false;
+    capture.disabled = true;
+    retake.disabled  = false;
+    video.pause();
+
+    if (prev && prevPh && (!upload?.files?.length)) {
+      prev.src = inputB64.value;
+      prev.style.display='block';
+      prevPh.style.display='none';
+    }
+  }
+
+  function retakeShot() { if (!stream) return; video.play(); canvas.hidden=true; capture.disabled=false; retake.disabled=true; }
+  openBtn?.addEventListener('click', openCamera);
+  capture?.addEventListener('click', takeShot);
+  retake?.addEventListener('click', retakeShot);
+  window.addEventListener('beforeunload', () => { if (stream) stream.getTracks().forEach(t=>t.stop()); });
+});
+</script>
