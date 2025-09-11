@@ -1,10 +1,10 @@
 # Gemfile
 source "https://rubygems.org"
 
-# (Opcional) fija tu versión si usas .ruby-version
+# (Opcional) si usas .ruby-version:
 # ruby "3.4.1"
 
-# --- Core Rails / servidor / assets ---
+# --- Core / servidor / assets ---
 gem "rails", "~> 8.0.2"
 gem "puma", ">= 5.0"
 gem "propshaft"
@@ -42,7 +42,7 @@ gem "thruster", require: false
 gem "tzinfo-data", platforms: %i[windows jruby]
 
 group :development, :test do
-  # ¡IMPORTANTE! Rails 8 requiere sqlite3 >= 2.1 en entornos que usen SQLite
+  # Rails 8 requiere sqlite3 >= 2.1 cuando usas SQLite
   gem "sqlite3", "~> 2.1"
 
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"
@@ -60,6 +60,6 @@ group :test do
 end
 
 group :production do
-  # Base de datos en servidores (Render/Fly/etc.)
+  # Base de datos en servidor (Render/Fly/Heroku)
   gem "pg", "~> 1.5"
 end
