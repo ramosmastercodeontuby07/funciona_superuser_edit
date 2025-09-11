@@ -1,20 +1,18 @@
-# Gemfile
 source "https://rubygems.org"
-
-# (Opcional pero recomendado) fija tu versión de Ruby si la sabes:
-# ruby "3.4.1"
+# ruby "3.4.1"  # opcional si usas esa versión
 
 gem "rails", "~> 8.0.2"
 gem "puma", ">= 5.0"
 gem "propshaft"
+gem "bootsnap", require: false
 
-# Front-end Rails nativo
+# Front-end nativo Rails
 gem "importmap-rails"
 gem "turbo-rails"
 gem "stimulus-rails"
 gem "jbuilder"
 
-# Autenticación / Autorización
+# Auth/Autz
 gem "bcrypt", "~> 3.1"
 gem "pundit"
 
@@ -22,7 +20,7 @@ gem "pundit"
 gem "image_processing", "~> 1.12"
 gem "mini_magick"
 
-# Export / hojas de cálculo / CSV
+# Export
 gem "caxlsx"
 gem "caxlsx_rails"
 gem "csv"
@@ -32,17 +30,10 @@ gem "solid_cache"
 gem "solid_queue"
 gem "solid_cable"
 
-# Opcionales de despliegue / servidor
-gem "kamal", require: false
-gem "thruster", require: false
-
-# Windows no trae zoneinfo
 gem "tzinfo-data", platforms: %i[windows jruby]
 
 group :development, :test do
-  # Base de datos local (NO en producción)
-  gem "sqlite3", ">= 2.1"
-
+  gem "sqlite3", "~> 1.7"   # SOLO aquí, no en producción
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"
   gem "brakeman", require: false
   gem "rubocop-rails-omakase", require: false
@@ -58,6 +49,5 @@ group :test do
 end
 
 group :production do
-  # Base de datos en servidores (Render/Fly/Heroku/etc.)
-  gem "pg", "~> 1.5"
+  gem "pg", "~> 1.5"        # Postgres en producción
 end

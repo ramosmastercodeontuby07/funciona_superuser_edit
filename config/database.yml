@@ -1,6 +1,5 @@
 # config/database.yml
 
-# ===== Dev/Test: SQLite =====
 sqlite_defaults: &sqlite_defaults
   adapter: sqlite3
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
@@ -14,16 +13,10 @@ test:
   <<: *sqlite_defaults
   database: storage/test.sqlite3
 
-
-# ===== Producción: PostgreSQL =====
-# Usa DATABASE_URL inyectada por tu proveedor (Render/Fly/etc.)
 pg_defaults: &pg_defaults
   adapter: postgresql
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  # Opcional:
-  # variables:
-  #   statement_timeout: 5000
 
 production:
   primary:
