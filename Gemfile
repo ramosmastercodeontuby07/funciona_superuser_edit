@@ -1,39 +1,50 @@
+# Gemfile
 source "https://rubygems.org"
-# ruby "3.4.1"  # opcional si usas esa versión
 
+# (Opcional) fija tu versión si usas .ruby-version
+# ruby "3.4.1"
+
+# --- Core Rails / servidor / assets ---
 gem "rails", "~> 8.0.2"
 gem "puma", ">= 5.0"
 gem "propshaft"
 gem "bootsnap", require: false
 
-# Front-end nativo Rails
+# --- Front-end Rails nativo ---
 gem "importmap-rails"
 gem "turbo-rails"
 gem "stimulus-rails"
 gem "jbuilder"
 
-# Auth/Autz
+# --- Autenticación / Autorización ---
 gem "bcrypt", "~> 3.1"
 gem "pundit"
 
-# ActiveStorage / imágenes
+# --- Archivos / imágenes ---
 gem "image_processing", "~> 1.12"
 gem "mini_magick"
 
-# Export
+# --- Exportaciones ---
 gem "caxlsx"
 gem "caxlsx_rails"
 gem "csv"
 
-# Cache/Job/Cable (si los usas)
+# --- Cache / Jobs / Cable (Rails 8) ---
 gem "solid_cache"
 gem "solid_queue"
 gem "solid_cable"
 
+# --- Despliegue opcional ---
+gem "kamal", require: false
+gem "thruster", require: false
+
+# Windows / JRuby
 gem "tzinfo-data", platforms: %i[windows jruby]
 
 group :development, :test do
-  gem "sqlite3", "~> 1.7"   # SOLO aquí, no en producción
+  # ¡IMPORTANTE! Rails 8 requiere sqlite3 >= 2.1 en entornos que usen SQLite
+  gem "sqlite3", "~> 2.1"
+
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"
   gem "brakeman", require: false
   gem "rubocop-rails-omakase", require: false
@@ -49,5 +60,6 @@ group :test do
 end
 
 group :production do
-  gem "pg", "~> 1.5"        # Postgres en producción
+  # Base de datos en servidores (Render/Fly/etc.)
+  gem "pg", "~> 1.5"
 end
