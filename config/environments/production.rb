@@ -1,90 +1,50 @@
-require "active_support/core_ext/integer/time"
-
+# config/environments/production.rb
 Rails.application.configure do
-  # Settings specified here will take precedence over those in config/application.rb.
-
-  # Code is not reloaded between requests.
+  # No recargar código en producción
   config.enable_reloading = false
-
-  # Eager load code on boot for better performance and memory savings (ignored by Rake tasks).
   config.eager_load = true
 
-  # Full error reports are disabled.
+  # No mostrar errores detallados
   config.consider_all_requests_local = false
 
-  # Turn on fragment caching in view templates.
-  config.action_controller.perform_caching = true
+  # Servir archivos estáticos (actívalo con RAILS_SERVE_STATIC_FILES=1)
+  config.public_file_server.enabled = ENV["RAILS_SERVE_STATIC_FILES"].present?
 
-  # Cache assets for far-future expiry since they are all digest stamped.
-  config.public_file_server.headers = { "cache-control" => "public, max-age=#{1.year.to_i}" }
-
-  # Enable serving of images, stylesheets, and JavaScripts from an asset server.
-  # config.asset_host = "http://assets.example.com"
-
-  # Store uploaded files on the local file system (see config/storage.yml for options).
-  config.active_storage.service = :local
-
-  # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  config.assume_ssl = true
-
-  # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
+  # Fuerza HTTPS (puedes comentar esta línea si aún no tienes SSL)
   config.force_ssl = true
 
-  # Skip http-to-https redirect for the default health check endpoint.
-  # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }
+  # Permite el host de Render (y subdominios)
+  config.hosts << ".onrender.com"
 
-  # Log to STDOUT with the current request id as a default log tag.
-  config.log_tags = [ :request_id ]
-  config.logger   = ActiveSupport::TaggedLogging.logger(STDOUT)
+  # Cache en producción
+  config.action_controller.perform_caching = true
+  # Ejemplo de cache store (opcional; ajusta a Redis/Memcached si usas):
+  # config.cache_store = :memory_store, { size: 64.megabytes }
 
-  # Change to "debug" to log everything (including potentially personally-identifiable information!)
-  config.log_level = ENV.fetch("RAILS_LOG_LEVEL", "info")
+  # Active Storage (ajusta si usas S3, etc.)
+  # Usa env ACTIVE_STORAGE_SERVICE=s3, gcs, etc. Si no, local.
+  config.active_storage.service = (ENV["ACTIVE_STORAGE_SERVICE"] || :local).to_sym
 
-  # Prevent health checks from clogging up the logs.
-  config.silence_healthcheck_path = "/up"
+  # Mailer (ajusta si configuras SMTP real)
+  config.action_mailer.perform_caching = false
+  config.action_mailer.raise_delivery_errors = false
 
-  # Don't log any deprecations.
+  # Logs
+  config.log_level = :info
+  config.log_tags  = [:request_id]
   config.active_support.report_deprecations = false
 
-  # Replace the default in-process memory cache store with a durable alternative.
-  config.cache_store = :solid_cache_store
+  # Formato/log a STDOUT (útil en Render)
+  config.log_formatter = ::Logger::Formatter.new
+  if ENV["RAILS_LOG_TO_STDOUT"].present?
+    logger           = ActiveSupport::Logger.new($stdout)
+    logger.formatter = config.log_formatter
+    config.logger    = ActiveSupport::TaggedLogging.new(logger)
+  end
 
-  # Replace the default in-process and non-durable queuing backend for Active Job.
-  config.active_job.queue_adapter = :solid_queue
-  config.solid_queue.connects_to = { database: { writing: :queue } }
-
-  # Ignore bad email addresses and do not raise email delivery errors.
-  # Set this to true and configure the email server for immediate delivery to raise delivery errors.
-  # config.action_mailer.raise_delivery_errors = false
-
-  # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "example.com" }
-
-  # Specify outgoing SMTP server. Remember to add smtp/* credentials via rails credentials:edit.
-  # config.action_mailer.smtp_settings = {
-  #   user_name: Rails.application.credentials.dig(:smtp, :user_name),
-  #   password: Rails.application.credentials.dig(:smtp, :password),
-  #   address: "smtp.example.com",
-  #   port: 587,
-  #   authentication: :plain
-  # }
-
-  # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
-  # the I18n.default_locale when a translation cannot be found).
-  config.i18n.fallbacks = true
-
-  # Do not dump schema after migrations.
+  # No volcar schema tras migraciones
   config.active_record.dump_schema_after_migration = false
 
-  # Only use :id for inspections in production.
-  config.active_record.attributes_for_inspect = [ :id ]
-
-  # Enable DNS rebinding protection and other `Host` header attacks.
-  # config.hosts = [
-  #   "example.com",     # Allow requests from example.com
-  #   /.*\.example\.com/ # Allow requests from subdomains like `www.example.com`
-  # ]
-  #
-  # Skip DNS rebinding protection for the default health check endpoint.
-  # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
+  # (Opcional) Jobs con Solid Queue si lo usas:
+  # config.active_job.queue_adapter = :solid_queue
 end
