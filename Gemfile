@@ -5,7 +5,7 @@ source "https://rubygems.org"
 # ruby "3.4.1"
 
 # --- Core / servidor / assets ---
-gem "rails", "~> 8.0.2"
+gem "rails", "~> 8.1.1"
 gem "puma", ">= 5.0"
 gem "propshaft"
 gem "bootsnap", require: false
